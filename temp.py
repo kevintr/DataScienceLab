@@ -40,7 +40,7 @@ training = pd.read_csv('training.csv', sep=';')
 training.dropna()
 
 #Trasformazione TS in datetime
-test['TS'] = pd.to_datetime(test['TS'])
+training['TS'] = pd.to_datetime(training['TS'])
 
 #training['TS'] = pd.to_numeric(training['TS'], downcast='float', errors='ignore')
 
@@ -74,23 +74,17 @@ descriptiveQuantity = training[['USAGE','AVG_SPEED_DW','NUM_CLI']].describe().ap
 descriptiveQuantity
 
 #da inserire il TS
-training = training[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI','VAR_CLASS']]
-training
+X = training[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
+y = training['VAR_CLASS']
 
+X = X.to_numpy()
+y = y.to_numpy()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
-
-print(confusion_matrix(y_test,y_pred))
-print(classification_report(y_test,y_pred))
-print(accuracy_score(y_test, y_pred))
 
 #In terms of machine learning, Clf is an estimator instance, which is used to store model.
 #We use clf to store trained model values, which are further used to predict value, based on the previously stored weights.
-
 
 # Generate a synthetic imbalanced classification dataset
 #Synthetic Minority Over-sampling Technique
@@ -115,6 +109,13 @@ confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
 y_true
 
 
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+
+print(confusion_matrix(y_test,y_pred))
+print(classification_report(y_test,y_pred))
+print(accuracy_score(y_test, y_pred))
 #ovr
 #########################OneVsRestClassifier############################################
 #al posto di clf possiamo mettere qualsiasi altra roba
