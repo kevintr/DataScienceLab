@@ -10,7 +10,7 @@ import os #os è un libreria per induviduare la directory dove ci si trova
 from datetime import datetime
 from sklearn import tree
 #import weka.core.jvm as jvm
-from sklearn.metrics import classification_report, confusion_matrix,accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix,accuracy_score,recall_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -280,20 +280,78 @@ pyplot.legend()
 pyplot.show()
 
 
-
+#Synthetic Minority Over-sampling Technique
 oversample = SMOTE(random_state=42,k_neighbors=2)
 X, y = oversample.fit_resample(X, y)
 counter = Counter(y)
 print(counter)
 
+#split del dataset in trainset e test_set
+x_train,x_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=123)
 
 lr = LogisticRegression()
-lr.fit(X, y)
-y_pred = lr.predict(X)
-accuracy_score(y, y_pred)
+lr.fit(x_train, y_train)
+y_pred = lr.predict(x_test)
+accuracy_score(y_test, y_pred)
+recall_score(y_test, y_pred)
 
 y_true = y
 
-confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
+confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
 
 y_true
+
+
+
+#########################OneVsRestClassifier############################################
+#al posto di clf possiamo mettere qualsiasi altra roba
+clf = OneVsRestClassifier(SVC()).fit(x_train, y_train)
+y_pred = clf.predict(x_test)
+accuracy_score(y_test, y_pred)
+
+
+##############################OVO#########################################################
+model = SVC(decision_function_shape='ovo')
+# fit model
+model.fit(X, y)
+# make predictions
+yhat = model.predict(X)
+
+
+
+# define model
+model = SVC()
+# define ovo strategy
+ovo = OneVsOneClassifier(model)
+# fit model
+ovo.fit(X, y)
+# make predictions
+yhat = ovo.predict(X)
+
+#Unire 1 a 2 e formare un unico pezzo e provare l'algoritmo binario###################################
+from imblearn.under_sampling import NearMiss
+training['VAR_CLASS'] = training['VAR_CLASS'].replace(2,1)
+#Adesso il problema diventa binario ed è così possibile usare gli algoritmi più noti
+training['VAR_CLASS'].
+
+x_train,x_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=123)
+
+nr = NearMiss()
+X_train, y_train = nr.fit_sample(x_train, y_train)
+
+
+np.bincount(y_train)
+This approach is commonly used for algorithms that naturally predict numerical class membership probability or score, such as:
+
+    
+    
+#Logistic Regression
+#Perceptron
+#As such, the implementation of these algorithms in the scikit-learn library implements the OvR strategy 
+#by default when using these algorithms for multi-class classification.
+
+
+
+
+
+
