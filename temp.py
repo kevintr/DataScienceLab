@@ -17,8 +17,16 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn import datasets
 from sklearn.multiclass import OutputCodeClassifier
-from sklearn.svm import LinearSVC
-from sklearn.svm import SVC
+from sklearn.svm import *
+#from sklearn.svm import SVC
+#'LinearSVC',
+#           'LinearSVR',
+#           'NuSVC',
+#           'NuSVR',
+#           'OneClassSVM',
+#           'SVC',
+#           'SVR',
+#           'l1_min_c
 from sklearn import MultinomialNB
 import sklearn
 from sklearn import svm
@@ -158,6 +166,8 @@ X_train, y_train = nr.fit_sample(x_train, y_train)
 counter = Counter(y_train)
 print(counter)
 
+
+######
 model = SVC(decision_function_shape='ovo')
 # fit model
 model.fit(X_train, y_train)
@@ -177,6 +187,20 @@ clf = MultinomialNB(alpha=1)
 y_pred = clf.predict(x_test)
 accuracy_score(y_test, y_pred)
 
+
+
+def OvoClassifier(classifier):
+    clf = OneVsRestClassifier(classifier)
+    clf.fit(x_train, y_train)
+    y_pred = clf.predict(x_test)
+    accuracy_score(y_test, y_pred)
+    confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    return accuracy_score
+
+
+
+
+OvoClassifier(SVC())
 #This approach is commonly used for algorithms that naturally predict numerical class 
 #membership probability or score, such as: 
 #Perceptron
