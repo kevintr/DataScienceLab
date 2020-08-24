@@ -19,6 +19,8 @@ from sklearn import datasets
 from sklearn.multiclass import OutputCodeClassifier
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
+from sklearn import MultinomialNB
+import sklearn
 from sklearn import svm
 from sklearn.multiclass import OneVsRestClassifier
 import imblearn
@@ -38,8 +40,6 @@ clf.fit(X, y).predict(X)
 
 test = pd.read_csv('test.csv', sep=';')       
 training = pd.read_csv('training.csv', sep=';')    
-
-test
 
 # training.TS.strptime
 # datetime.strptime(training.TS '%d/%m/%y %H:%M:%S')
@@ -131,10 +131,6 @@ test1
 
 
 
-test
-
-
-
 X = training1.iloc[:, 0:4].values
 y = test1.iloc[:, 4].values
 
@@ -210,22 +206,9 @@ X_train, X_test, y_train, y_test = train_test_split(training[(['USAGE','AVG_SPEE
 #    matrici di costo
 #    ribilanciamento- oversampling
 # split training.csv splittare il dataset 70% 30%
-
   
 X = training1[(['USAGE','AVG_SPEED_DW','NUM_CLI'])]
 y = training1['VAR_CLASS']
-
-
-#from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-labelencoder_X = LabelEncoder()
-onehotencoder = OneHotEncoder(categorical_features = [0])
-labelencoder_y = LabelEncoder()
-y = labelencoder_y.fit_transform(y)
-y = onehotencoder.fit_transform(y).toarray()
-
-
-
 
 
 from sklearn.linear_model import LogisticRegression
@@ -237,19 +220,13 @@ print('1 ' + str(len(training1[training1['VAR_CLASS'] == 1])))
 print('2 ' + str(len(training1[training1['VAR_CLASS'] == 2])))
 
 
-X = training[(['USAGE','AVG_SPEED_DW','NUM_CLI'])]
-y = training['VAR_CLASS']
-
 clf = LogisticRegression(random_state=0).fit(X, y)
 
 np.unique(clf.predict(X))
 
 array([0, 0])
- clf.predict_proba(X[:2, :])
-array([[9.8...e-01, 1.8...e-02, 1.4...e-08],
-       [9.7...e-01, 2.8...e-02, ...e-08]])
- clf.score(X, y)
-0.97...
+clf.predict_proba(X[:2, :])
+clf.score(X, y)
 
 
 
@@ -264,9 +241,9 @@ import numpy
 X1, y1 = make_classification(n_samples=10000, n_features=2, n_redundant=0,
 	n_clusters_per_class=1, weights=[0.99], flip_y=0, random_state=1)
 
-
+X = training[(['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI'])]
+y = training['VAR_CLASS']
 X = X.to_numpy()
-y = y.array  
 y = y.to_numpy()
 
 # summarize class distribution
@@ -298,7 +275,6 @@ recall_score(y_test, y_pred)
 y_true = y
 
 confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-
 y_true
 
 
@@ -328,30 +304,44 @@ ovo.fit(X, y)
 # make predictions
 yhat = ovo.predict(X)
 
-#Unire 1 a 2 e formare un unico pezzo e provare l'algoritmo binario###################################
+
+
+#########################################################################################################
+#Unire 1 a 2 e formare un unico pezzo e provare l'algoritmo binario######################################
+#########################################################################################################
 from imblearn.under_sampling import NearMiss
 training['VAR_CLASS'] = training['VAR_CLASS'].replace(2,1)
 #Adesso il problema diventa binario ed è così possibile usare gli algoritmi più noti
-training['VAR_CLASS'].
+training['VAR_CLASS']
 
 x_train,x_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=123)
 
 nr = NearMiss()
 X_train, y_train = nr.fit_sample(x_train, y_train)
+counter = Counter(y_train)
+print(counter)
+
+model = SVC(decision_function_shape='ovo')
+# fit model
+model.fit(X_train, y_train)
+# make predictions
+y_pred = model.predict(x_test)
+
+confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+accuracy_score(y_test, y_pred)
+
+clf = OneVsRestClassifier(SVC()).fit(x_train, y_train)
+y_pred = clf.predict(x_test)
+accuracy_score(y_test, y_pred)
 
 
-np.bincount(y_train)
-This approach is commonly used for algorithms that naturally predict numerical class membership probability or score, such as:
+clf = MultinomialNB(alpha=1)
+y_pred = clf.predict(x_test)
+accuracy_score(y_test, y_pred)
 
-    
-    
-#Logistic Regression
+#This approach is commonly used for algorithms that naturally predict numerical class 
+#membership probability or score, such as: 
 #Perceptron
 #As such, the implementation of these algorithms in the scikit-learn library implements the OvR strategy 
 #by default when using these algorithms for multi-class classification.
-
-
-
-
-
 
