@@ -18,7 +18,6 @@ from sklearn import metrics
 from sklearn import datasets
 from sklearn.multiclass import OutputCodeClassifier
 from sklearn.svm import *
-#from sklearn.svm import SVC
 #'LinearSVC',
 #           'LinearSVR',
 #           'NuSVC',
@@ -27,7 +26,7 @@ from sklearn.svm import *
 #           'SVC',
 #           'SVR',
 #           'l1_min_c
-from sklearn import MultinomialNB
+#from sklearn import MultinomialNB
 import sklearn
 from sklearn import svm
 from sklearn.multiclass import OneVsRestClassifier,OneVsOneClassifier
@@ -45,7 +44,7 @@ from imblearn.under_sampling import NearMiss
 # Training set upload
 training = pd.read_csv('training.csv', sep=';')    
 # verifica valori null all'interno del training
-training.dropna()
+training = training.dropna()
 
 #Trasformazione TS in datetime
 training['TS'] = pd.to_datetime(training['TS'])
@@ -81,16 +80,18 @@ descriptiveQuantity = training[['USAGE','AVG_SPEED_DW','NUM_CLI']].describe().ap
 
 descriptiveQuantity
 
-#da inserire il TS
-X = training[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
-y = training['VAR_CLASS']
 
-X = X.to_numpy()
-y = y.to_numpy()
+def prepareTraining():
+    training = pd.read_csv('training.csv', sep=';')    
+    #da inserire il TS
+    X = training[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
+    y = training['VAR_CLASS']
+    
+    X = X.to_numpy()
+    y = y.to_numpy()
+    return (X,y)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-
+X,y = prepareTraining()
 #In terms of machine learning, Clf is an estimator instance, which is used to store model.
 #We use clf to store trained model values, which are further used to predict value, based on the previously stored weights.
 
@@ -101,12 +102,11 @@ X, y = oversample.fit_resample(X, y)
 counter = Counter(y)
 print(counter)
 
-#split del dataset in trainset e test_set
-x_train,x_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=123)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 modelLR = LogisticRegression()
-modelLR.fit(x_train, y_train)
-y_pred = modelLR.predict(x_test)
+modelLR.fit(X_train, y_train)
+y_pred = modelLR.predict(X_test)
 accuracy_score(y_test, y_pred)#0.43
 
 #recall_score(y_test, y_pred)
@@ -133,24 +133,61 @@ accuracy_score(y_test, y_pred) #0.2
 
 
 ##############################OVO#########################################################
-model = SVC(decision_function_shape='ovo')
-# fit model
-model.fit(X, y)
-# make predictions
-yhat = model.predict(X)
+##############################OVO#########################################################
+##############################OVO#########################################################
+class OvoClassifierResults:
 
+    def __init__(self, confusion_matrix,accuracy_score):
+        ## private varibale or property in Python
+        self.__confusion_matrix = confusion_matrix
+        self.__accuracy_score = accuracy_score
+        
+    def __init__(self):
+        ## private varibale or property in Python
+        pass
+    ## getter method to get the properties using an object
+    def get_confusion_matrix(self):
+        return self.__confusion_matrix
 
+    ## setter method 
+    def set_confusion_matrix(self, confusion_matrix):
+        self.__confusion_matrix = confusion_matrix
+        
+    ## getter method to get the properties using an object
+    def get_accuracy_score(self):
+        return self.__accuracy_score
 
-# define model
-model = SVC()
-# define ovo strategy
-ovo = OneVsOneClassifier(model)
-# fit model
-ovo.fit(X, y)
-# make predictions
-y_pred = ovo.predict(X)
+    ## setter method
+    def set_accuracy_score(self, accuracy_score):
+        self.__accuracy_score = accuracy_score
 
+#restituisce in outPut l'accuracy e la confusionMatrix per il classifier in input
+def ovoClassifier(classifier):
+    ovoClassifierResults = OvoClassifierResults()
+    clf = OneVsRestClassifier(classifier)
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    score = accuracy_score(y_test, y_pred)
+    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    print(score)
+    print(confusionMatrix)
+    ovoClassifierResults.set_accuracy_score(score)
+    ovoClassifierResults.set_confusion_matrix(confusionMatrix)
+    return ovoClassifierResults
 
+X,y = prepareTraining()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+X_train
+
+X_train = np.delete(X_train, slice(1, 15000000), 0)
+y_train = np.delete(y_train, slice(1, 15000000), 0)
+resultLinearSVR = ovoClassifier(LinearSVR())
+resultLinearSVC = ovoClassifier(LinearSVC())
+resultNuSVR = ovoClassifier(NuSVC())
+resultLinearSVR = ovoClassifier(NuSVR())
+resultOneClassSVM = ovoClassifier(OneClassSVM())
+resultSVC = ovoClassifier(SVC())
+resultSVR = ovoClassifier(SVR())
 
 #########################################################################################################
 #Unire 1 a 2 e formare un unico pezzo e provare l'algoritmo binario######################################
@@ -166,8 +203,7 @@ X_train, y_train = nr.fit_sample(x_train, y_train)
 counter = Counter(y_train)
 print(counter)
 
-
-######
+##########################################
 model = SVC(decision_function_shape='ovo')
 # fit model
 model.fit(X_train, y_train)
@@ -187,20 +223,6 @@ clf = MultinomialNB(alpha=1)
 y_pred = clf.predict(x_test)
 accuracy_score(y_test, y_pred)
 
-
-
-def OvoClassifier(classifier):
-    clf = OneVsRestClassifier(classifier)
-    clf.fit(x_train, y_train)
-    y_pred = clf.predict(x_test)
-    accuracy_score(y_test, y_pred)
-    confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-    return accuracy_score
-
-
-
-
-OvoClassifier(SVC())
 #This approach is commonly used for algorithms that naturally predict numerical class 
 #membership probability or score, such as: 
 #Perceptron
