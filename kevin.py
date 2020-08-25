@@ -18,14 +18,6 @@ from sklearn import metrics
 from sklearn import datasets
 from sklearn.multiclass import OutputCodeClassifier
 from sklearn.svm import *
-#'LinearSVC',
-#           'LinearSVR',
-#           'NuSVC',
-#           'NuSVR',
-#           'OneClassSVM',
-#           'SVC',
-#           'SVR',
-#           'l1_min_c
 #from sklearn import MultinomialNB
 import sklearn
 from sklearn import svm
@@ -40,11 +32,16 @@ from matplotlib import pyplot
 from numpy import where
 import numpy
 from imblearn.under_sampling import NearMiss
+import matplotlib.pyplot as plt
 
 # Training set upload
 training = pd.read_csv('training.csv', sep=';')    
 # verifica valori null all'interno del training
 training = training.dropna()
+
+len(training['KIT_ID'].unique())
+counter = Counter(training['KIT_ID'])
+print(counter)
 
 #Trasformazione TS in datetime
 training['TS'] = pd.to_datetime(training['TS'])
@@ -179,8 +176,10 @@ X,y = prepareTraining()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
 X_train
 
-X_train = np.delete(X_train, slice(1, 15000000), 0)
-y_train = np.delete(y_train, slice(1, 15000000), 0)
+X_train = np.delete(X_train, slice(1, 10000000), 0)
+y_train = np.delete(y_train, slice(1, 10000000), 0)
+len(X_train)
+len(y_train)
 resultLinearSVR = ovoClassifier(LinearSVR())
 resultLinearSVC = ovoClassifier(LinearSVC())
 resultNuSVR = ovoClassifier(NuSVC())
@@ -188,6 +187,7 @@ resultLinearSVR = ovoClassifier(NuSVR())
 resultOneClassSVM = ovoClassifier(OneClassSVM())
 resultSVC = ovoClassifier(SVC())
 resultSVR = ovoClassifier(SVR())
+resultSVR = ovoClassifier(LogisticRegression()())
 
 #########################################################################################################
 #Unire 1 a 2 e formare un unico pezzo e provare l'algoritmo binario######################################
@@ -233,6 +233,51 @@ accuracy_score(y_test, y_pred)
 
 
 
+
+##############PLOT############################################################
+training2 = training[training['VAR_CLASS'] == 2]
+training2['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
+
+training1 = training[training['VAR_CLASS'] == 1]
+training1['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
+
+kit3409364152 = training[training['KIT_ID'] == 3409364152]
+kit3409364152.plot(x='TS',y='USAGE',color='red')
+kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+plt.show()
+
+kit3409364152[kit3409364152['VAR_CLASS'] == 2]
+kit3409364152[kit3409364152['VAR_CLASS'] == 1]
+kit3409364152[kit3409364152['VAR_CLASS'] == 0].tail(320)[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
+
+print(Counter(kit3409364152['VAR_CLASS'])) #Counter({0: 8480, 2: 140, 1: 12})
+
+###########################à
+
+kit1629361016 = training[training['KIT_ID'] == 1629361016]
+kit1629361016.plot(x='TS',y='USAGE',color='red')
+kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+plt.show()
+
+kit1629361016[kit1629361016['VAR_CLASS'] == 2]
+kit1629361016[kit1629361016['VAR_CLASS'] == 1]
+kit1629361016[kit1629361016['VAR_CLASS'] == 0].tail(335)[['TS','USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
+kit1629361016[kit1629361016['TS'] == '2018-11-28 20:50:00']
+print(Counter(kit1629361016['VAR_CLASS']))#({0: 8024, 2: 312, 1: 12})
+
+#########
+
+
+kit2487219358 = training[training['KIT_ID'] == 2487219358]
+kit2487219358.plot(x='TS',y='USAGE',color='red')
+kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+plt.show()
+
+kit2487219358[kit2487219358['VAR_CLASS'] == 2]
+kit2487219358[kit2487219358['VAR_CLASS'] == 1]
+kit2487219358[kit2487219358['VAR_CLASS'] == 0].tail(320)[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
+
+print(Counter(kit2487219358['VAR_CLASS']))#({0: 3423, 2: 20, 1: 12})
 
 
 
