@@ -252,11 +252,12 @@ kit3409364152[kit3409364152['VAR_CLASS'] == 0].tail(320)[['USAGE','KIT_ID','AVG_
 
 print(Counter(kit3409364152['VAR_CLASS'])) #Counter({0: 8480, 2: 140, 1: 12})
 
-###########################à
-
+########################################################################
 kit1629361016 = training[training['KIT_ID'] == 1629361016]
-kit1629361016.plot(x='TS',y='USAGE',color='red')
-kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+kit1629361016.plot(x='TS',y='USAGE',color='red',figsize=(15,3), linewidth=1, fontsize=10)
+#plt.xlabel('TS', fontsize=10);
+#plt.ylabel('USAGE in bit/s', fontsize=10);
+kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red',figsize=(20,10), linewidth=5, fontsize=5)#costante
 plt.show()
 
 kit1629361016[kit1629361016['VAR_CLASS'] == 2]
@@ -265,9 +266,7 @@ kit1629361016[kit1629361016['VAR_CLASS'] == 0].tail(335)[['TS','USAGE','KIT_ID',
 kit1629361016[kit1629361016['TS'] == '2018-11-28 20:50:00']
 print(Counter(kit1629361016['VAR_CLASS']))#({0: 8024, 2: 312, 1: 12})
 
-#########
-
-
+########################################################################
 kit2487219358 = training[training['KIT_ID'] == 2487219358]
 kit2487219358.plot(x='TS',y='USAGE',color='red')
 kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
