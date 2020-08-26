@@ -33,6 +33,7 @@ from numpy import where
 import numpy
 from imblearn.under_sampling import NearMiss
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
 
 # Training set upload
 training = pd.read_csv('training.csv', sep=';')    
@@ -242,8 +243,9 @@ training1 = training[training['VAR_CLASS'] == 1]
 training1['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
 
 kit3409364152 = training[training['KIT_ID'] == 3409364152]
-kit3409364152.plot(x='TS',y='USAGE',color='red')
-kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+kit3409364152.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+#kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+kit3409364152.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 plt.show()
 
 kit3409364152[kit3409364152['VAR_CLASS'] == 2]
@@ -254,11 +256,52 @@ print(Counter(kit3409364152['VAR_CLASS'])) #Counter({0: 8480, 2: 140, 1: 12})
 
 ########################################################################
 kit1629361016 = training[training['KIT_ID'] == 1629361016]
-kit1629361016.plot(x='TS',y='USAGE',color='red',figsize=(15,3), linewidth=1, fontsize=10)
+fig, ax = plt.subplots()
+fig, ax1 = plt.subplots()
+ax2 = ax1.twiny()
+fig.autofmt_xdate()
+kit1629361016.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+kit1629361016.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)
+plt.xlabel('Index Values')
+plt.ylabel('Elements in List Y')
+plt.show()
+
+kit1629361016 = training[training['KIT_ID'] == 1629361016]
+
+fig, ax1 = plt.subplots()
+ax2 = ax1.twiny()
+
+fig.subplots_adjust(bottom=0.25)
+
+ax1_pos = fig.add_axes([0.2, 0.1, 0.65, 0.03])
+ax2_pos = fig.add_axes([0.2, 0.05, 0.65, 0.03])
+
+s1 = Slider(ax1_pos, 'Pos1', 0.1, 1000)
+s2 = Slider(ax2_pos, 'Pos2', 0.1, 1000)
+
+def update1(v):
+    pos = s1.val
+    ax1.axis([pos,pos+2,0,1])
+    fig.canvas.draw_idle()
+
+def update2(v):
+    pos = s2.val
+    ax2.axis([pos,pos+2,0,1])
+    fig.canvas.draw_idle()
+
+s1.on_changed(update1)
+s2.on_changed(update2)
+fig, ax1 = plt.subplots()
+ax2 = ax1.twiny()
+fig.autofmt_xdate()
+ax1.plot(kit1629361016['TS'],kit1629361016['VAR_CLASS'],'b-')
+ax2.plot(kit1629361016['TS'],kit1629361016['USAGE'],'r-')
+plt.show()
+
+kit1629361016[['USAGE', 'VAR_CLASS']][:10000].plot(x='TS',figsize=(15,2.5), linewidth=1, fontsize=10)
 #plt.xlabel('TS', fontsize=10);
 #plt.ylabel('USAGE in bit/s', fontsize=10);
 kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red',figsize=(20,10), linewidth=5, fontsize=5)#costante
-plt.show()
 
 kit1629361016[kit1629361016['VAR_CLASS'] == 2]
 kit1629361016[kit1629361016['VAR_CLASS'] == 1]
@@ -268,8 +311,9 @@ print(Counter(kit1629361016['VAR_CLASS']))#({0: 8024, 2: 312, 1: 12})
 
 ########################################################################
 kit2487219358 = training[training['KIT_ID'] == 2487219358]
-kit2487219358.plot(x='TS',y='USAGE',color='red')
-kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+#kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
+kit2487219358.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+kit2487219358.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 plt.show()
 
 kit2487219358[kit2487219358['VAR_CLASS'] == 2]
