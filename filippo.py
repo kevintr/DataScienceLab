@@ -443,7 +443,9 @@ X, y = undersample.fit_resample(X, y)
 counter = Counter(y)
 print(counter) #classi bilanciate
 
+# logistic regression for multi-class classification using a one-vs-rest
 # define dataset
+
 X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
 # define model
 model = LogisticRegression()
