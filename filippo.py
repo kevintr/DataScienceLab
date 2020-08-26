@@ -435,6 +435,13 @@ from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import accuracy_score
+from imblearn.over_sampling import SMOTE
+from collections import Counter
+
+undersample = SMOTE(random_state=100,k_neighbors=2)
+X, y = undersample.fit_resample(X, y)
+counter = Counter(y)
+print(counter)
 
 # define dataset
 X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
