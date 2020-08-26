@@ -427,7 +427,7 @@ def prepareTraining():
     return (X,y)
 
 X,y = prepareTraining()
-############## sono ripartito da qua 
+############## sono ripartito da qua#######################################
 #https://machinelearningmastery.com/one-vs-rest-and-one-vs-one-for-multi-class-classification/
 
 
@@ -441,7 +441,7 @@ from collections import Counter
 undersample = SMOTE(random_state=100,k_neighbors=2)
 X, y = undersample.fit_resample(X, y)
 counter = Counter(y)
-print(counter)
+print(counter) #classi bilanciate
 
 # define dataset
 X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
