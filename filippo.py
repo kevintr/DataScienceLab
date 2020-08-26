@@ -475,7 +475,7 @@ model.fit(X, y)
 yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
-accuracy_score(y, y_pred) #0.366 
+accuracy_score(y, y_pred) #0.696
 
 
 
