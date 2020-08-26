@@ -371,6 +371,19 @@ training_test.plot(kind='bar',x='VAR_CLASS',y='counts')
 ################################
 #Ho ripreso la preparazione fatta da kevin e fatta la classif OVR
 #Ancora non capisco dove vada riportato under o over 
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.metrics import accuracy_score,confusion_matrix,recall_score
+from imblearn.over_sampling import SMOTE
+from collections import Counter
+from imblearn.under_sampling import NearMiss
+import pandas as pd
+import numpy as np
+from sklearn.multiclass import OneVsRestClassifier
+
+
+
 
 
 training =pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
@@ -417,7 +430,7 @@ descriptiveQuantity
 
 
 def prepareTraining():
-    training = pd.read_csv('training.csv', sep=';')    
+    training = pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
     #da inserire il TS
     X = training[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
     y = training['VAR_CLASS']
@@ -431,17 +444,22 @@ X,y = prepareTraining()
 #https://machinelearningmastery.com/one-vs-rest-and-one-vs-one-for-multi-class-classification/
 
 
-from sklearn.datasets import make_classification
-from sklearn.linear_model import LogisticRegression
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.metrics import accuracy_score
-from imblearn.over_sampling import SMOTE
-from collections import Counter
 
-undersample = SMOTE(random_state=100,k_neighbors=2)
+#######prova 1
+undersample = NearMiss(version=1)
+#oversample = SMOTE(random_state=100,k_neighbors=2)
 X, y = undersample.fit_resample(X, y)
 counter = Counter(y)
-print(counter) #classi bilanciate
+print(counter) #classi bilanciate(?)
+##################
+#################prova 2
+#nm = NearMiss()
+#X_res, y_res = nm.fit_resample(X, y)
+#print('Resampled dataset shape %s' % Counter(y_res))
+#lentisssimo 
+
+###################
+
 
 # logistic regression for multi-class classification using a one-vs-rest
 # define dataset
@@ -459,11 +477,7 @@ yhat
 y_pred = ovr.predict(X)
 accuracy_score(y, y_pred)#0.696 con random state=1 con radom state=100 -> 0.652
 
-
-
-
-
-
+#########
 # logistic regression for multi-class classification using built-in one-vs-rest
 # define dataset
 X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
@@ -476,6 +490,24 @@ yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
 accuracy_score(y, y_pred) #0.696
+
+recall_score(y, y_pred)
+
+#########################
+confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+y_true
+
+
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+
+print(confusion_matrix(y_test,y_pred))
+print(classification_report(y_test,y_pred)) 
+
+
+
+
 
 
 
