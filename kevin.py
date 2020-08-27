@@ -32,6 +32,7 @@ from matplotlib import pyplot
 from numpy import where
 import numpy
 from imblearn.under_sampling import NearMiss
+import datetime
 #import matplotlib.pyplot as plt
 #from matplotlib.widgets import Slider
 #import warnings
@@ -44,11 +45,9 @@ training = pd.read_csv('training.csv', sep=';')
 training = training.dropna()
 
 len(training['KIT_ID'].unique())
+training.groupby('KIT_ID')['KIT_ID'].count().unique()
 counter = Counter(training['KIT_ID'])
 print(counter)
-
-
-import datetime
 
 
 
@@ -115,7 +114,7 @@ def prepareTraining():
     training['TS'] = training['TS'] - epoch
     training['TS'] = training['TS'].dt.total_seconds()
     #da inserire il TS
-    X = training[['TS','USAGE','NUM_CLI']]
+    X = training[['TS','KIT_ID','USAGE','NUM_CLI']]
     y = training['VAR_CLASS']
     
     X = X.to_numpy()
@@ -314,35 +313,35 @@ plt.show()
 
 kit1629361016 = training[training['KIT_ID'] == 1629361016]
 
-fig, ax1 = plt.subplots()
-ax2 = ax1.twiny()
-
-fig.subplots_adjust(bottom=0.25)
-
-ax1_pos = fig.add_axes([0.2, 0.1, 0.65, 0.03])
-ax2_pos = fig.add_axes([0.2, 0.05, 0.65, 0.03])
-
-s1 = Slider(ax1_pos, 'Pos1', 0.1, 1000)
-s2 = Slider(ax2_pos, 'Pos2', 0.1, 1000)
-
-def update1(v):
-    pos = s1.val
-    ax1.axis([pos,pos+2,0,1])
-    fig.canvas.draw_idle()
-
-def update2(v):
-    pos = s2.val
-    ax2.axis([pos,pos+2,0,1])
-    fig.canvas.draw_idle()
-
-s1.on_changed(update1)
-s2.on_changed(update2)
-fig, ax1 = plt.subplots()
-ax2 = ax1.twiny()
-fig.autofmt_xdate()
-ax1.plot(kit1629361016['TS'],kit1629361016['VAR_CLASS'],'b-')
-ax2.plot(kit1629361016['TS'],kit1629361016['USAGE'],'r-')
-plt.show()
+#fig, ax1 = plt.subplots()
+#ax2 = ax1.twiny()
+#
+#fig.subplots_adjust(bottom=0.25)
+#
+#ax1_pos = fig.add_axes([0.2, 0.1, 0.65, 0.03])
+#ax2_pos = fig.add_axes([0.2, 0.05, 0.65, 0.03])
+#
+#s1 = Slider(ax1_pos, 'Pos1', 0.1, 1000)
+#s2 = Slider(ax2_pos, 'Pos2', 0.1, 1000)
+#
+#def update1(v):
+#    pos = s1.val
+#    ax1.axis([pos,pos+2,0,1])
+#    fig.canvas.draw_idle()
+#
+#def update2(v):
+#    pos = s2.val
+#    ax2.axis([pos,pos+2,0,1])
+#    fig.canvas.draw_idle()
+#
+#s1.on_changed(update1)
+#s2.on_changed(update2)
+#fig, ax1 = plt.subplots()
+#ax2 = ax1.twiny()
+#fig.autofmt_xdate()
+#ax1.plot(kit1629361016['TS'],kit1629361016['VAR_CLASS'],'b-')
+#ax2.plot(kit1629361016['TS'],kit1629361016['USAGE'],'r-')
+#plt.show()
 
 #kit1629361016[['USAGE', 'VAR_CLASS']][:10000].plot(x='TS',figsize=(15,2.5), linewidth=1, fontsize=10)
 #kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red',figsize=(20,10), linewidth=5, fontsize=5)#costante
