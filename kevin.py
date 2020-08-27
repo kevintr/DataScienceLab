@@ -33,6 +33,7 @@ from numpy import where
 import numpy
 from imblearn.under_sampling import NearMiss
 import datetime
+from sklearn.tree import DecisionTreeClassifier
 #import matplotlib.pyplot as plt
 #from matplotlib.widgets import Slider
 #import warnings
@@ -201,7 +202,8 @@ def ovoClassifier(classifier):
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
     score = accuracy_score(y_test, y_pred)
-    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
     print(score)
     print(confusionMatrix)
     ovoClassifierResults.set_accuracy_score(score)
@@ -429,15 +431,173 @@ print(Counter(kit2487219358['VAR_CLASS']))#({0: 3423, 2: 20, 1: 12})
 
 
 
+####################################    PROVA PREDIZIONE CON SOLO KIT_DI CON 1E 2 #######################
+
+
+#kitWith1or2 = training[(training['KIT_ID'] == 3409364152)]
+kitWith1or2 = training[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
+
+
+def prepareTraining2(training):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
+    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
+    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
+    #da inserire il TS
+    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y =  training.loc[:,'VAR_CLASS']
+    
+    X = X.to_numpy()
+    y = y.to_numpy()
+    return (X,y)
+
+X,y = prepareTraining2(kitWith1or2)
+counter = Counter(y)
+print(counter)
+
+
+
+len(X_train)
+len(y_train)
+counter = Counter(y_test)
+print(counter)
+
+#Synthetic Minority Over-sampling Technique
+oversample = SMOTE(random_state=100,k_neighbors=2)
+X, y = oversample.fit_resample(X, y)
+counter = Counter(y)
+print(counter)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+X_train
+
+resultLinearSVR = ovoClassifier(LinearSVR())
+resultLinearSVC = ovoClassifier(LinearSVC())#----------
+resultNuSVR = ovoClassifier(NuSVC())
+#resultLinearSVR = ovoClassifier(NuSVR())
+resultOneClassSVM = ovoClassifier(OneClassSVM())######tiene in conto tutti i valori
+resultSVC = ovoClassifier(SVC())########
+resultSVR = ovoClassifier(SVR())#####
+resultSVR = ovoClassifier(LogisticRegression())#######
+
+clf = OneVsRestClassifier(classifier)
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+score = accuracy_score(y_test, y_pred)
+confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+print(score)
+print(confusionMatrix)
+
+############    Random Forest ##################
+from sklearn.ensemble import RandomForestClassifier
+
+#Create a Gaussian Classifier
+clf=RandomForestClassifier(n_estimators=100)
+
+#Train the model using the training sets y_pred=clf.predict(X_test)
+clf.fit(X_train,y_train)
+
+y_pred=clf.predict(X_test)
+confusion_matrix(y_test, y_pred, labels=[0, 1])
+accuracy_score(y_test, y_pred)
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+############    Random Forest ##################
+
+############    DecisionTreeClassifier                          ##################OTTIMI RISULATI
+clf = DecisionTreeClassifier()
+
+# Train Decision Tree Classifer
+clf = clf.fit(X_train,y_train)
+#Predict the response for test dataset
+t_pred = clf.predict(T)
+counter = Counter(t_pred)
+print(counter)
+#y_pred = clf.predict(X_test)
+confusion_matrix(w, y_pred, labels=[0, 1])
+accuracy_score(y_test, y_pred)
+############    DecisionTreeClassifier                          ##################
+
+
+
+
+kitNot1or2 = training[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
+kitNot1or2[kitNot1or2['VAR_CLASS']==1]
+
+
+kitNot1or2 = kitNot1or2.loc[:,'TS','KIT_ID','USAGE','NUM_CLI']
+kitNot1or2 = kitNot1or2.loc[:,'VAR_CLASS']
+
+
+Z,w = prepareTraining2(kitNot1or2)
+Z_train, Z_test, w_train, w_test = train_test_split(Z, w, test_size=0.3, random_state=100)
+w_pred = clf.predict(T)
+counter = Counter(w_pred)
+print(counter)
+confusion_matrix(w, w_pred, labels=[0, 1])
+accuracy_score(w, w_pred)
+
+
+
+test = pd.read_csv('test.csv', sep=';')  
+T,t = prepareTraining2(test)
+
+test = test.dropna()
+
+epoch = datetime.datetime.utcfromtimestamp(0)
+test.loc[:,'TS'] = pd.to_datetime(training['TS'])
+test.loc[:,'TS'] = test.loc[:,'TS'] - epoch
+test.loc[:,'TS'] = test.loc[:,'TS'].dt.total_seconds()
+#da inserire il TS
+T = test.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+T = T.to_numpy()
+test.loc[:,'VAR_CLASS'] = pd.Series(t_pred)
+
+len(test[test['VAR_CLASS']== 1]['KIT_ID'].unique())
+len(test['KIT_ID'].unique())
+
+kit113054467 = test[test['KIT_ID'] == 113054467]
+kit113054467.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+kit113054467.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+kit113054467.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+kit113054467.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+
+
+kit1338038850 = test[test['KIT_ID'] == 1338038850]
+kit1338038850.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+kit1338038850.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+kit1338038850.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+kit1338038850.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+
+
+kit2830968677 = test[test['KIT_ID'] == 2830968677]
+kit2830968677.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+kit2830968677.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+kit2830968677.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+kit2830968677.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ########################################Parte relatica alla lettura del TEST.csv
 #test['TS'] = pd.to_numeric(test['TS'], downcast='float', errors='ignore')
 #test = pd.read_csv('test.csv', sep=';')       
 
 
-pulire il training dai kitid con 1 e 2(
-        allenare il model con il nuovo dataset, riallenarlo con il primo kitid1, kitid2,kitid3)
-pulire il training dai kitid con 0 e allenare il modello
-pulire il training dai kitid con 0 e allenare il modello, e riallenarlo con il training pulito da 1 e 2
+#pulire il training dai kitid con 1 e 2(
+#        allenare il model con il nuovo dataset, riallenarlo con il primo kitid1, kitid2,kitid3)
+#pulire il training dai kitid con 0 e allenare il modello
+#pulire il training dai kitid con 0 e allenare il modello, e riallenarlo con il training pulito da 1 e 2
 
 
 
