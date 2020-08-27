@@ -16,6 +16,7 @@ import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
 
 training =pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
 # verifica valori null all'interno del training
@@ -163,6 +164,21 @@ yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
 accuracy_score(y, y_pred) #0.705
+###########################
+
+#RandomForestClassifier
+
+#define dataset
+X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
+# define model
+model = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+# fit model
+model.fit(X, y)
+# make predictions
+yhat2 = model.predict(X)
+yhat2
+y_pred = model.predict(X)
+accuracy_score(y, y_pred) #0.747
 
 
 #########################
