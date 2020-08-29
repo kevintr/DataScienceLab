@@ -42,6 +42,7 @@ from matplotlib.widgets import Slider
 import warnings
 
         
+training = pd.read_csv('training.csv', sep=';')  
 # verifica valori null all'interno del training
 training = training.dropna()
 
@@ -299,29 +300,79 @@ training2['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disser
 training1 = training[training['VAR_CLASS'] == 1]
 training1['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
 
-kit3409364152 = training[training.loc[:,'KIT_ID'] == 3409364152]
+kit3409364152 = training.loc[(training.loc[:,'KIT_ID'] == 3409364152)]
+
 training[training['AVG_SPEED_DW'] == 85320]['KIT_ID'].unique()
 
 def normalizeSeries(seriesInDatframe):
-    seriesInDatframe = seriesInDatframe/(
+    seriesInDatframe = (seriesInDatframe-seriesInDatframe.min())/(
            seriesInDatframe.max()-seriesInDatframe.min())
     return seriesInDatframe
     
+
 kit3409364152.loc[:,'USAGE']= normalizeSeries(kit3409364152.loc[:,'USAGE'])
+kit3409364152.loc[:,'VAR_CLASS']= normalizeSeries(kit3409364152.loc[:,'VAR_CLASS'])
+kit3409364152.loc[:,'NUM_CLI']= normalizeSeries(kit3409364152.loc[:,'NUM_CLI'])
+
+pyplot.figure(figsize=(20,3))
+pyplot.plot(kit3409364152.loc[:,'TS'],kit3409364152.loc[:,'USAGE'],linewidth=1)
+pyplot.scatter(kit3409364152.loc[:,'TS'],kit3409364152.loc[:,'VAR_CLASS'], color='red',linewidth=None,edgecolors=None , marker='o')
+pyplot.plot(kit3409364152.loc[:,'TS'],kit3409364152.loc[:,'NUM_CLI'], color='c',linewidth=3)
+pyplot.xticks(np.arange(min(kit3409364152['TS']), max(kit3409364152['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=1)),rotation=30)
+pyplot.legend(('USAGE', 'NUM_CLI', 'VAR_CLASS'))
+pyplot.show()
 
 
-#fig, axs = plt.subplots(2)
-#fig.suptitle('Vertically stacked subplots')
-#x= kit3409364152['TS'].to_numpy()
-#y= kit3409364152['USAGE'].to_numpy()
-#z= kit3409364152['VAR_CLASS'].to_numpy()
-# 
-#axs[0].plot(x,y)
-#axs[1].plot(x,y)
-#plt.show()
 
-kit3409364152.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+t=kit3409364152.loc[:,'TS']
+s1=kit3409364152.loc[:,'USAGE']
+s2=kit3409364152.loc[:,'VAR_CLASS']
+s3=kit3409364152.loc[:,'NUM_CLI']
+
+ax1 = plt.subplot(311)
+plt.plot(t, s1)
+plt.setp(ax1.get_xticklabels(), fontsize=6)
+
+# share x only
+ax2 = plt.subplot(312, sharex=ax1)
+plt.plot(t, s2)
+# make these tick labels invisible
+plt.setp(ax2.get_xticklabels(), visible=False)
+
+# share x and y
+ax3 = plt.subplot(313, sharex=ax1, sharey=ax1)
+plt.plot(t, s3)
+plt.xlim(0.01, 5.0)
+plt.show()
+
+fig, ax = plt.subplots(3)
+x= kit3409364152['TS'].to_numpy()
+y= kit3409364152['USAGE'].to_numpy()
+z= kit3409364152['NUM_CLI'].to_numpy()
+w= kit3409364152['VAR_CLASS'].to_numpy()
+ 
+ax[0].margins(2,2)
+ax[1].margins(2,2)
+ax[2].margins(2,2)
+ax[0].plot(x,y)
+ax[0].set_title('Zoomed in')
+plt.xticks(np.arange(min(kit3409364152['TS']), max(kit3409364152['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=2)))
+ax[1].plot(x,z)
+ax[1].set_title('NUM_CLI')
+ax[2].plot(x,w)
+#ax[0].figure(figsize=(20,50))
+#plt.ylim(100, 100)
+plt.show()
+
+k = kit3409364152.plot(x='TS',y='VAR_CLASS',color='orange',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
+#plt.xticks(np.arange(min(kit3409364152['TS']), max(kit3409364152['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=2)))
 kit3409364152.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
+fig, ax = plt.subplots()
+ax.plot(X,Y1,'o')
+ax.plot(X,Y2,'x')
+plt.show()
+
+
 kit3409364152.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 #kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
@@ -520,6 +571,30 @@ score = accuracy_score(y_test, y_pred)
 confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
 print(score)
 print(confusionMatrix)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ############    Random Forest ##################
 
