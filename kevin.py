@@ -34,14 +34,14 @@ import numpy
 from imblearn.under_sampling import NearMiss
 import datetime
 from sklearn.tree import DecisionTreeClassifier
-#import matplotlib.pyplot as plt
-#from matplotlib.widgets import Slider
-#import warnings
-#warnings.filterwarnings("ignore")
-#from ts_utils import *
-#install ts_utils
-# Training set upload
-training = pd.read_csv('training.csv', sep=';')    
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import preprocessing
+import datetime, time
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+import warnings
+
+        
 # verifica valori null all'interno del training
 training = training.dropna()
 
@@ -50,10 +50,6 @@ training.groupby('KIT_ID')['KIT_ID'].count().unique()
 counter = Counter(training['KIT_ID'])
 print(counter)
 
-
-
-def unix_time_millis(dt):
-    return (dt - epoch).total_seconds() * 1000.0
 
 training['TS'] = unix_time_millis(training['TS'])
 training['TS'] = training['TS'] - epoch
@@ -73,7 +69,7 @@ training['TS'] = training['TS'].dt.total_seconds()
 #Trasformazione TS in datetime
 training['TS'] = pd.to_datetime(training['TS'])
 training['TS'] = training['TS'].dt.total_seconds()
-import datetime, time
+
 t = datetime.datetime(2011, 10, 21, 0, 0)
 time.mktime(t.timetuple())
 #training['TS'] = pd.to_numeric(training['TS'], downcast='float', errors='ignore')
@@ -121,6 +117,7 @@ def prepareTraining():
     X = X.to_numpy()
     y = y.to_numpy()
     return (X,y)
+
 
 X,y = prepareTraining()
 #In terms of machine learning, Clf is an estimator instance, which is used to store model.
@@ -278,15 +275,51 @@ training794615332.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=
 training794615332.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 
 
-##############PLOT############################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############                      PLOOOOOOOOOOOOOOOOOOOOOOT                    ############################################################
 training2 = training[training['VAR_CLASS'] == 2]
 training2['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
 
 training1 = training[training['VAR_CLASS'] == 1]
 training1['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
 
-kit3409364152 = training[training['KIT_ID'] == 3409364152]
+kit3409364152 = training[training.loc[:,'KIT_ID'] == 3409364152]
 training[training['AVG_SPEED_DW'] == 85320]['KIT_ID'].unique()
+
+def normalizeSeries(seriesInDatframe):
+    seriesInDatframe = seriesInDatframe/(
+           seriesInDatframe.max()-seriesInDatframe.min())
+    return seriesInDatframe
+    
+kit3409364152.loc[:,'USAGE']= normalizeSeries(kit3409364152.loc[:,'USAGE'])
+
+
+#fig, axs = plt.subplots(2)
+#fig.suptitle('Vertically stacked subplots')
+#x= kit3409364152['TS'].to_numpy()
+#y= kit3409364152['USAGE'].to_numpy()
+#z= kit3409364152['VAR_CLASS'].to_numpy()
+# 
+#axs[0].plot(x,y)
+#axs[1].plot(x,y)
+#plt.show()
+
 kit3409364152.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 kit3409364152.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
 kit3409364152.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
@@ -302,7 +335,6 @@ print(Counter(kit3409364152['VAR_CLASS'])) #Counter({0: 8480, 2: 140, 1: 12})
 
 ########################################################################
 kit1629361016 = training[training['KIT_ID'] == 1629361016]
-fig, ax = plt.subplots()
 fig, ax1 = plt.subplots()
 ax2 = ax1.twiny()
 fig.autofmt_xdate()
@@ -315,35 +347,35 @@ plt.show()
 
 kit1629361016 = training[training['KIT_ID'] == 1629361016]
 
-#fig, ax1 = plt.subplots()
-#ax2 = ax1.twiny()
-#
-#fig.subplots_adjust(bottom=0.25)
-#
-#ax1_pos = fig.add_axes([0.2, 0.1, 0.65, 0.03])
-#ax2_pos = fig.add_axes([0.2, 0.05, 0.65, 0.03])
-#
-#s1 = Slider(ax1_pos, 'Pos1', 0.1, 1000)
-#s2 = Slider(ax2_pos, 'Pos2', 0.1, 1000)
-#
-#def update1(v):
-#    pos = s1.val
-#    ax1.axis([pos,pos+2,0,1])
-#    fig.canvas.draw_idle()
-#
-#def update2(v):
-#    pos = s2.val
-#    ax2.axis([pos,pos+2,0,1])
-#    fig.canvas.draw_idle()
-#
-#s1.on_changed(update1)
-#s2.on_changed(update2)
-#fig, ax1 = plt.subplots()
-#ax2 = ax1.twiny()
-#fig.autofmt_xdate()
-#ax1.plot(kit1629361016['TS'],kit1629361016['VAR_CLASS'],'b-')
-#ax2.plot(kit1629361016['TS'],kit1629361016['USAGE'],'r-')
-#plt.show()
+fig, ax1 = plt.subplots()
+ax2 = ax1.twiny()
+
+fig.subplots_adjust(bottom=0.25)
+
+ax1_pos = fig.add_axes([0.2, 0.1, 0.65, 0.03])
+ax2_pos = fig.add_axes([0.2, 0.05, 0.65, 0.03])
+
+s1 = Slider(ax1_pos, 'Pos1', 0.1, 1000)
+s2 = Slider(ax2_pos, 'Pos2', 0.1, 1000)
+
+def update1(v):
+    pos = s1.val
+    ax1.axis([pos,pos+2,0,1])
+    fig.canvas.draw_idle()
+
+def update2(v):
+    pos = s2.val
+    ax2.axis([pos,pos+2,0,1])
+    fig.canvas.draw_idle()
+
+s1.on_changed(update1)
+s2.on_changed(update2)
+fig, ax1 = plt.subplots()
+ax2 = ax1.twiny()
+fig.autofmt_xdate()
+ax1.plot(kit1629361016['TS'],kit1629361016['VAR_CLASS'],'b-')
+ax2.plot(kit1629361016['TS'],kit1629361016['USAGE'],'r-')
+plt.show()
 
 #kit1629361016[['USAGE', 'VAR_CLASS']][:10000].plot(x='TS',figsize=(15,2.5), linewidth=1, fontsize=10)
 #kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red',figsize=(20,10), linewidth=5, fontsize=5)#costante
@@ -490,7 +522,7 @@ print(score)
 print(confusionMatrix)
 
 ############    Random Forest ##################
-from sklearn.ensemble import RandomForestClassifier
+
 
 #Create a Gaussian Classifier
 clf=RandomForestClassifier(n_estimators=100)
@@ -504,7 +536,7 @@ accuracy_score(y_test, y_pred)
 print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
 ############    Random Forest ##################
 
-############    DecisionTreeClassifier                          ##################OTTIMI RISULATI
+############            DecisionTreeClassifier                          ##################OTTIMI RISULATI
 clf = DecisionTreeClassifier()
 
 # Train Decision Tree Classifer
@@ -516,7 +548,7 @@ print(counter)
 #y_pred = clf.predict(X_test)
 confusion_matrix(w, y_pred, labels=[0, 1])
 accuracy_score(y_test, y_pred)
-############    DecisionTreeClassifier                          ##################
+############            DecisionTreeClassifier                          ##################
 
 
 
@@ -576,17 +608,9 @@ kit2830968677.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, f
 kit2830968677.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 kit2830968677.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 
+kit2830968677 = kit2830968677.dropna()
 
-
-
-
-
-
-
-
-
-
-
+kit2830968677.loc[:,['USAGE','VAR_CLASS']] = preprocessing.normalize(kit2830968677.loc[:,['USAGE','VAR_CLASS']])
 
 
 ########################################Parte relatica alla lettura del TEST.csv
@@ -594,10 +618,106 @@ kit2830968677.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewi
 #test = pd.read_csv('test.csv', sep=';')       
 
 
+
 #pulire il training dai kitid con 1 e 2(
 #        allenare il model con il nuovo dataset, riallenarlo con il primo kitid1, kitid2,kitid3)
 #pulire il training dai kitid con 0 e allenare il modello
 #pulire il training dai kitid con 0 e allenare il modello, e riallenarlo con il training pulito da 1 e 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###################    STAGIONALITA' ##############################
+epoch = datetime.datetime.utcfromtimestamp(0)
+training = pd.read_csv('training.csv', sep=';')
+training.loc[:,'TS'] = pd.to_datetime(training['TS'])
+training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
+training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
+#da inserire il TS
+kit1629361016 = training[training['KIT_ID'] == 1629361016]
+kit1629361016 = kit1629361016.loc[:,['TS','USAGE']]
+kit1629361016 = kit1629361016.set_index('TS')
+#kit1629361016.loc[:,'TS'] = pd.to_datetime(kit1629361016.loc[:,'TS'])
+kit1629361016.plot()
+type(kit1629361016.loc[885,'TS'])
+
+
+
+X = kit1629361016.values
+diff = list()
+days = 288 # 24*60 /5 
+for i in range(days, len(X)):
+	value = X[i] - X[i - days]
+	diff.append(value)
+pyplot.plot(diff)
+pyplot.show()
+
+X = kit1629361016.values
+diff = list()
+days = 2016  ##288 * 7
+for i in range(days, len(X)):
+	value = X[i] - X[i - days]
+	diff.append(value)
+pyplot.plot(diff)
+pyplot.show()
+
+
+# fit polynomial: x^2*b1 + x*b2 + ... + bn
+X = [i%269 for i in range(0, len(kit1629361016))]
+y = kit1629361016.values
+degree = 4
+coef = np.polyfit(X, y, degree)
+print('Coefficients: %s' % coef)
+# create curve
+curve = list()
+for i in range(len(X)):
+	value = coef[-1]
+	for d in range(degree):
+		value += X[i]**(degree-d) * coef[d]
+	curve.append(value)
+# plot curve over original data
+pyplot.plot(kit1629361016.values)
+pyplot.plot(curve, color='red', linewidth=3)
+pyplot.show()
+
+
+pyplot.plot(kit1629361016.values)
+len(X)
+
+
 
 
 
