@@ -2,7 +2,6 @@
 
 
 ################################
-#Ho ripreso la preparazione fatta da kevin e fatta la classif OVR
 
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
@@ -17,7 +16,9 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
-
+from sklearn.neural_network import MLPClassifier
+import sklearn as sk
+import datetime
 training =pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
 # verifica valori null all'interno del training
 training = training.dropna()
@@ -101,12 +102,7 @@ print(counter) #classi bilanciate(?)
 #lentisssimo 
 
 ###################
-training_test2=training.groupby(['VAR_CLASS']).size().reset_index(name='counts')
-training_test.head()
-training_test.plot(kind='bar',x='VAR_CLASS',y='counts')
-training_test.plot(x='VAR_CLASS',y='counts')
-training_test.plot(kind='hist',x='VAR_CLASS',y='counts')
-training_test.plot(kind='kde',x='VAR_CLASS',y='counts')
+
 
 # logistic regression for multi-class classification using a one-vs-rest
 # define dataset
@@ -122,8 +118,8 @@ ovr.fit(X, y)
 yhat = ovr.predict(X)
 yhat
 y_pred = ovr.predict(X)
-accuracy_score(y, y_pred)#0.696 con random state=1 con radom state=100 -> 0.652
-
+logistic_regression=accuracy_score(y, y_pred)#0.696 con random state=1 con radom state=100 -> 0.652
+logistic_regression
 #########
 # logistic regression for multi-class classification using built-in one-vs-rest
 # define dataset
@@ -136,9 +132,10 @@ model.fit(X, y)
 yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
-accuracy_score(y, y_pred) #0.696
+logistic_regression_2= accuracy_score(y, y_pred) #0.696
+logistic_regression_2
 
-recall_score(y, y_pred)
+#recall_score(y, y_pred)
 ###################################
 ####SVC - C-Support Vector Classification-
 # define dataset
@@ -151,7 +148,8 @@ model.fit(X, y)
 yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
-accuracy_score(y, y_pred) #0.893
+SVC=accuracy_score(y, y_pred) #0.893
+SVC
 ####################SVC LINEAR
 # define dataset
 X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
@@ -163,7 +161,8 @@ model.fit(X, y)
 yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
-accuracy_score(y, y_pred) #0.705
+SVC_LINEAR=accuracy_score(y, y_pred) #0.705
+SVC_LINEAR
 ###########################
 
 #RandomForestClassifier
@@ -171,33 +170,55 @@ accuracy_score(y, y_pred) #0.705
 #define dataset
 X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
 # define model
-model = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+model = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=100)
 # fit model
 model.fit(X, y)
 # make predictions
 yhat2 = model.predict(X)
 yhat2
 y_pred = model.predict(X)
-accuracy_score(y, y_pred) #0.747
+RandomForest= accuracy_score(y, y_pred) #0.736
+RandomForest
+
+############
+#neurale 
+
+#define dataset
+X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
+NN = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+NN.fit(X, y)
+NN.predict(X[460:,:])
+round(NN.score(X,y), 4)#0.816
 
 
-#########################
-confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-y_true
+#########################conversione data secondi
+df_time = pd.to_datetime(training['TS'])
 
+second= (df_time.dt.hour*60+df_time.dt.minute)*60 + df_time.dt.second+df_time.dt.day*86400
 
-print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
-
-print(confusion_matrix(y_test,y_pred))
-print(classification_report(y_test,y_pred)) 
+second.head()
+second.tail()
+##################################################
 
 
 
+training['VAR_CLASS'].value_counts()
+prova= training[training['VAR_CLASS']==2]
+prova
+LOL=training.groupby('KIT_ID')
+LOL
 
+training = training().reset_index()
+grouped = training.groupby('KIT_ID')['VAR_CLASS']
+grouped
+#loans.groupby('country_code')['loan_amount'].
+#df.groupby(['Animal']).mean()
+#de = sf[sf["lang"] == "de"]
 
+test=pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\test.csv",";")
+test
 
-
+test_1 = test.groupby('KIT_ID')
+test_1
 
 
