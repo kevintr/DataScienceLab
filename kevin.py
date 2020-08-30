@@ -45,38 +45,7 @@ import warnings
 training = pd.read_csv('training.csv', sep=';')  
 # verifica valori null all'interno del training
 training = training.dropna()
-
-len(training['KIT_ID'].unique())
-training.groupby('KIT_ID')['KIT_ID'].count().unique()
-counter = Counter(training['KIT_ID'])
-print(counter)
-
-
-training['TS'] = unix_time_millis(training['TS'])
-training['TS'] = training['TS'] - epoch
-training['TS'] = training['TS'].dt.total_seconds()
-
-
-#df_time = pd.to_datetime(training['TS'])
-#
-# 
-#
-#second= (df_time.dt.hour*60+df_time.dt.minute)*60 + df_time.dt.second
-#
-# 
-#
-#second.head()
-#second.tail()
-#Trasformazione TS in datetime
 training['TS'] = pd.to_datetime(training['TS'])
-training['TS'] = training['TS'].dt.total_seconds()
-
-t = datetime.datetime(2011, 10, 21, 0, 0)
-time.mktime(t.timetuple())
-#training['TS'] = pd.to_numeric(training['TS'], downcast='float', errors='ignore')
-
-# type(training.loc[0,'TS'] )
-training.loc[0,'TS']
 
 print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
 print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
@@ -217,6 +186,9 @@ y_train = np.delete(y_train, slice(1, 10000000), 0)
 len(X_train)
 len(y_train)
 resultLinearSVR = ovoClassifier(LinearSVR())
+resultLinearSVR.get_accuracy_score()
+resultLinearSVR.get_confusion_matrix()
+
 resultLinearSVC = ovoClassifier(LinearSVC())
 resultNuSVR = ovoClassifier(NuSVC())
 resultLinearSVR = ovoClassifier(NuSVR())
@@ -279,244 +251,7 @@ training794615332.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linew
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##############                      PLOOOOOOOOOOOOOOOOOOOOOOT                    ############################################################
-training2 = training[training['VAR_CLASS'] == 2]
-training2['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
-
-training1 = training[training['VAR_CLASS'] == 1]
-training1['KIT_ID'].unique()# trovare gli unici KIT_ID che hanno avuto un disservizio di tipo 1
-
-kit3409364152 = training.loc[(training.loc[:,'KIT_ID'] == 3409364152)]
-
-training[training['AVG_SPEED_DW'] == 85320]['KIT_ID'].unique()
-
-def normalizeSeries(seriesInDatframe):
-    seriesInDatframe = (seriesInDatframe-seriesInDatframe.min())/(
-           seriesInDatframe.max()-seriesInDatframe.min())
-    return seriesInDatframe
-    
-
-kit3409364152.loc[:,'USAGE']= normalizeSeries(kit3409364152.loc[:,'USAGE'])
-kit3409364152.loc[:,'VAR_CLASS']= normalizeSeries(kit3409364152.loc[:,'VAR_CLASS'])
-kit3409364152.loc[:,'NUM_CLI']= normalizeSeries(kit3409364152.loc[:,'NUM_CLI'])
-
-pyplot.figure(figsize=(20,3))
-pyplot.plot(kit3409364152.loc[:,'TS'],kit3409364152.loc[:,'USAGE'],linewidth=1)
-pyplot.scatter(kit3409364152.loc[:,'TS'],kit3409364152.loc[:,'VAR_CLASS'], color='red',linewidth=None,edgecolors=None , marker='o')
-pyplot.plot(kit3409364152.loc[:,'TS'],kit3409364152.loc[:,'NUM_CLI'], color='c',linewidth=3)
-pyplot.xticks(np.arange(min(kit3409364152['TS']), max(kit3409364152['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=1)),rotation=30)
-pyplot.legend(('USAGE', 'NUM_CLI', 'VAR_CLASS'))
-pyplot.show()
-
-
-
-t=kit3409364152.loc[:,'TS']
-s1=kit3409364152.loc[:,'USAGE']
-s2=kit3409364152.loc[:,'VAR_CLASS']
-s3=kit3409364152.loc[:,'NUM_CLI']
-
-ax1 = plt.subplot(311)
-plt.plot(t, s1)
-plt.setp(ax1.get_xticklabels(), fontsize=6)
-
-# share x only
-ax2 = plt.subplot(312, sharex=ax1)
-plt.plot(t, s2)
-# make these tick labels invisible
-plt.setp(ax2.get_xticklabels(), visible=False)
-
-# share x and y
-ax3 = plt.subplot(313, sharex=ax1, sharey=ax1)
-plt.plot(t, s3)
-plt.xlim(0.01, 5.0)
-plt.show()
-
-fig, ax = plt.subplots(3)
-x= kit3409364152['TS'].to_numpy()
-y= kit3409364152['USAGE'].to_numpy()
-z= kit3409364152['NUM_CLI'].to_numpy()
-w= kit3409364152['VAR_CLASS'].to_numpy()
- 
-ax[0].margins(2,2)
-ax[1].margins(2,2)
-ax[2].margins(2,2)
-ax[0].plot(x,y)
-ax[0].set_title('Zoomed in')
-plt.xticks(np.arange(min(kit3409364152['TS']), max(kit3409364152['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=2)))
-ax[1].plot(x,z)
-ax[1].set_title('NUM_CLI')
-ax[2].plot(x,w)
-#ax[0].figure(figsize=(20,50))
-#plt.ylim(100, 100)
-plt.show()
-
-k = kit3409364152.plot(x='TS',y='VAR_CLASS',color='orange',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-#plt.xticks(np.arange(min(kit3409364152['TS']), max(kit3409364152['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=2)))
-kit3409364152.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
-fig, ax = plt.subplots()
-ax.plot(X,Y1,'o')
-ax.plot(X,Y2,'x')
-plt.show()
-
-
-kit3409364152.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-#kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
-plt.show()
-
-kit3409364152[kit3409364152['VAR_CLASS'] == 2]['AVG_SPEED_DW']
-kit3409364152[kit3409364152['VAR_CLASS'] == 1]
-kit3409364152[kit3409364152['VAR_CLASS'] == 0].tail(320)[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
-
-print(Counter(kit3409364152['VAR_CLASS'])) #Counter({0: 8480, 2: 140, 1: 12})
-
-########################################################################
-kit1629361016 = training[training['KIT_ID'] == 1629361016]
-fig, ax1 = plt.subplots()
-ax2 = ax1.twiny()
-fig.autofmt_xdate()
-kit1629361016.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
-kit1629361016.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)
-kit1629361016.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)
-plt.xlabel('Index Values')
-plt.ylabel('Elements in List Y')
-plt.show()
-
-kit1629361016 = training[training['KIT_ID'] == 1629361016]
-
-fig, ax1 = plt.subplots()
-ax2 = ax1.twiny()
-
-fig.subplots_adjust(bottom=0.25)
-
-ax1_pos = fig.add_axes([0.2, 0.1, 0.65, 0.03])
-ax2_pos = fig.add_axes([0.2, 0.05, 0.65, 0.03])
-
-s1 = Slider(ax1_pos, 'Pos1', 0.1, 1000)
-s2 = Slider(ax2_pos, 'Pos2', 0.1, 1000)
-
-def update1(v):
-    pos = s1.val
-    ax1.axis([pos,pos+2,0,1])
-    fig.canvas.draw_idle()
-
-def update2(v):
-    pos = s2.val
-    ax2.axis([pos,pos+2,0,1])
-    fig.canvas.draw_idle()
-
-s1.on_changed(update1)
-s2.on_changed(update2)
-fig, ax1 = plt.subplots()
-ax2 = ax1.twiny()
-fig.autofmt_xdate()
-ax1.plot(kit1629361016['TS'],kit1629361016['VAR_CLASS'],'b-')
-ax2.plot(kit1629361016['TS'],kit1629361016['USAGE'],'r-')
-plt.show()
-
-#kit1629361016[['USAGE', 'VAR_CLASS']][:10000].plot(x='TS',figsize=(15,2.5), linewidth=1, fontsize=10)
-#kit1629361016.plot(x='TS',y='AVG_SPEED_DW',color='red',figsize=(20,10), linewidth=5, fontsize=5)#costante
-#kit1629361016.plot(x='TS',y='NUM_CLI',color='red',figsize=(20,10), linewidth=5, fontsize=5)#costante
-kit1629361016.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
-kit1629361016.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)
-kit1629361016.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)
-#plt.xlabel('TS', fontsize=10);
-#plt.ylabel('USAGE in bit/s', fontsize=10);
-
-kit1629361016[kit1629361016['VAR_CLASS'] == 2]
-kit1629361016[kit1629361016['VAR_CLASS'] == 1]
-kit1629361016[kit1629361016['VAR_CLASS'] == 0].tail(335)[['TS','USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
-kit1629361016[kit1629361016['TS'] == '2018-11-28 20:50:00']
-print(Counter(kit1629361016['VAR_CLASS']))#({0: 8024, 2: 312, 1: 12})
-
-########################################################################
-kit2487219358 = training[training['KIT_ID'] == 2487219358]
-#kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
-kit2487219358.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
-kit2487219358.plot(x='TS',y='NUM_CLI',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-kit2487219358.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-plt.show()
-
-kit2487219358[kit2487219358['VAR_CLASS'] == 2]
-kit2487219358[kit2487219358['VAR_CLASS'] == 1]
-kit2487219358[kit2487219358['VAR_CLASS'] == 0].tail(320)[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
-
-print(Counter(kit2487219358['VAR_CLASS']))#({0: 3423, 2: 20, 1: 12})
-
-
-
-
-#'''
-#Split train/test from any given data point.
-#:parameter
-#    :param ts: pandas Series
-#    :param test: num or str - test size (ex. 0.20) or index position
-#                 (ex. "yyyy-mm-dd", 1000)
-#:return
-#    ts_train, ts_test
-#'''
-#def split_train_test(ts, test=0.20, plot=True, figsize=(15,5)):
-#    ## define splitting point
-#    if type(test) is float:
-#        split = int(len(ts)*(1-test))
-#        perc = test
-#    elif type(test) is str:
-#        split = ts.reset_index()[ 
-#                      ts.reset_index().iloc[:,0]==test].index[0]
-#        perc = round(len(ts[split:])/len(ts), 2)
-#    else:
-#        split = test
-#        perc = round(len(ts[split:])/len(ts), 2)
-#    print("--- splitting at index: ", split, "|", 
-#          ts.index[split], "| test size:", perc, " ---")
-#    
-#    ## split ts
-#    ts_train = ts.head(split)
-#    ts_test = ts.tail(len(ts)-split)
-#    if plot is True:
-#        fig, ax = plt.subplots(nrows=1, ncols=2, sharex=False, 
-#                               sharey=True, figsize=figsize)
-#        ts_train.plot(ax=ax[0], grid=True, title="Train", 
-#                      color="black")
-#        ts_test.plot(ax=ax[1], grid=True, title="Test", 
-#                     color="black")
-#        ax[0].set(xlabel=None)
-#        ax[1].set(xlabel=None)
-#        plt.show()
-#        
-#    return ts_train, ts_test
-#
-#
-#kit2487219358_train , kit2487219358_test = split_train_test(kit2487219358[['TS','USAGE']])
-#
-#plot(kit2487219358[['TS','USAGE']], plot_ma=True, plot_intervals=True, window=w, figsize=(15,5))
-
-
-
-
-
-
-
-
-
 ####################################    PROVA PREDIZIONE CON SOLO KIT_DI CON 1E 2 #######################
-
-
 #kitWith1or2 = training[(training['KIT_ID'] == 3409364152)]
 kitWith1or2 = training[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
 kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
@@ -574,31 +309,7 @@ print(confusionMatrix)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ############    Random Forest ##################
-
-
 #Create a Gaussian Classifier
 clf=RandomForestClassifier(n_estimators=100)
 
@@ -617,11 +328,11 @@ clf = DecisionTreeClassifier()
 # Train Decision Tree Classifer
 clf = clf.fit(X_train,y_train)
 #Predict the response for test dataset
-t_pred = clf.predict(T)
-counter = Counter(t_pred)
-print(counter)
+y_pred = clf.predict(X_test)
+#counter = Counter(t_pred)
+#print(counter)
 #y_pred = clf.predict(X_test)
-confusion_matrix(w, y_pred, labels=[0, 1])
+confusion_matrix(y_test, y_pred, labels=[0, 1])
 accuracy_score(y_test, y_pred)
 ############            DecisionTreeClassifier                          ##################
 
@@ -632,32 +343,33 @@ kitNot1or2 = training[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!
 kitNot1or2[kitNot1or2['VAR_CLASS']==1]
 
 
-kitNot1or2 = kitNot1or2.loc[:,'TS','KIT_ID','USAGE','NUM_CLI']
-kitNot1or2 = kitNot1or2.loc[:,'VAR_CLASS']
+#kitNot1or2 = kitNot1or2.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+#kitNot1or2 = kitNot1or2.loc[:,['VAR_CLASS']]
 
 
 Z,w = prepareTraining2(kitNot1or2)
-Z_train, Z_test, w_train, w_test = train_test_split(Z, w, test_size=0.3, random_state=100)
-w_pred = clf.predict(T)
-counter = Counter(w_pred)
+#Z_train, Z_test, w_train, w_test = train_test_split(Z, w, test_size=0.3, random_state=100)
+t_pred = clf.predict(T)
+counter = Counter(t_pred)
 print(counter)
 confusion_matrix(w, w_pred, labels=[0, 1])
 accuracy_score(w, w_pred)
 
 
 
-test = pd.read_csv('test.csv', sep=';')  
+test1 = pd.read_csv('test.csv', sep=';')  
 T,t = prepareTraining2(test)
 
 test = test.dropna()
 
 epoch = datetime.datetime.utcfromtimestamp(0)
-test.loc[:,'TS'] = pd.to_datetime(training['TS'])
+test.loc[:,'TS'] = pd.to_datetime(test['TS'])
 test.loc[:,'TS'] = test.loc[:,'TS'] - epoch
 test.loc[:,'TS'] = test.loc[:,'TS'].dt.total_seconds()
 #da inserire il TS
 T = test.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
 T = T.to_numpy()
+T = T[numpy.logical_not(numpy.isnan(T))]
 test.loc[:,'VAR_CLASS'] = pd.Series(t_pred)
 
 len(test[test['VAR_CLASS']== 1]['KIT_ID'].unique())
@@ -753,9 +465,9 @@ type(kit1629361016.loc[885,'TS'])
 
 X = kit1629361016.values
 diff = list()
-days = 288 # 24*60 /5 
-for i in range(days, len(X)):
-	value = X[i] - X[i - days]
+ore = 2160 # 24*60 /5 
+for i in range(ore, len(X)):
+	value = X[i] - X[i - ore]
 	diff.append(value)
 pyplot.plot(diff)
 pyplot.show()
@@ -771,7 +483,7 @@ pyplot.show()
 
 
 # fit polynomial: x^2*b1 + x*b2 + ... + bn
-X = [i%269 for i in range(0, len(kit1629361016))]
+X = [i%288 for i in range(0, len(kit1629361016))]
 y = kit1629361016.values
 degree = 4
 coef = np.polyfit(X, y, degree)
