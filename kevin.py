@@ -136,12 +136,13 @@ accuracy_score(y_test, y_pred) #0.2
 ##############################OVO#########################################################
 ##############################OVO#########################################################
 ##############################OVO#########################################################
-class OvoClassifierResults:
+class Results:
 
-    def __init__(self, confusion_matrix,accuracy_score):
+    def __init__(self, confusion_matrix,accuracy_score,clf):
         ## private varibale or property in Python
         self.__confusion_matrix = confusion_matrix
         self.__accuracy_score = accuracy_score
+        self.__clf = clf
         
     def __init__(self):
         ## private varibale or property in Python
@@ -161,10 +162,18 @@ class OvoClassifierResults:
     ## setter method
     def set_accuracy_score(self, accuracy_score):
         self.__accuracy_score = accuracy_score
+   
+    ## getter method to get the properties using an object
+    def get_clf(self):
+        return self.clf
+
+    ## setter method
+    def set_clf(self, clf):
+        self.clf = clf
 
 #restituisce in outPut l'accuracy e la confusionMatrix per il classifier in input
 def ovoClassifier(classifier):
-    ovoClassifierResults = OvoClassifierResults()
+    ovoClassifierResults = Results()
     clf = OneVsRestClassifier(classifier)
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
@@ -252,108 +261,112 @@ training794615332.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linew
 
 
 ####################################    PROVA PREDIZIONE CON SOLO KIT_DI CON 1E 2 #######################
-#kitWith1or2 = training[(training['KIT_ID'] == 3409364152)]
-kitWith1or2 = training[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
-
-
-def prepareTraining2(training):
+def prepareTraining2(dateframe):
     epoch = datetime.datetime.utcfromtimestamp(0)
-    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
-    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
-    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
+    dateframe.loc[:,'TS'] = pd.to_datetime(dateframe.loc[:,'TS'])
+    dateframe.loc[:,'TS'] = dateframe.loc[:,'TS'] - epoch
+    dateframe.loc[:,'TS'] = dateframe.loc[:,'TS'].dt.total_seconds()
     #da inserire il TS
-    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y =  training.loc[:,'VAR_CLASS']
+    X = dateframe.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y =  dateframe.loc[:,'VAR_CLASS']
     
     X = X.to_numpy()
     y = y.to_numpy()
     return (X,y)
 
-X,y = prepareTraining2(kitWith1or2)
-counter = Counter(y)
-print(counter)
+
+#restituisce in outPut l'accuracy e la confusionMatrix per il classifier in input
+def binaryClassifierSmote(classifier,dataframe):
+    X,y = prepareTraining2(dataframe)
+    #Synthetic Minority Over-sampling Technique
+    oversample = SMOTE(random_state=100,k_neighbors=2)
+    X, y = oversample.fit_resample(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+    results = Results()
+    clf = classifier
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    score = accuracy_score(y_test, y_pred)
+    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    print(score)
+    print(confusionMatrix)
+    results.set_accuracy_score(score)
+    results.set_confusion_matrix(confusionMatrix)
+    results.set_clf(clf)
+    return results
+
+def testClassifier(clf1,dataframe):
+    X,y = prepareTraining2(dataframe)
+    results = Results()
+    y_pred = clf1.predict(X)
+    score = accuracy_score(y, y_pred)
+    confusionMatrix = confusion_matrix(y, y_pred, labels=[0, 1])
+#   confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    print(score)
+    print(confusionMatrix)
+    results.set_accuracy_score(score)
+    results.set_confusion_matrix(confusionMatrix)
+    results.set_clf(clf1)
+    return results
+
+#training e test
+kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
+
+kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+resultRandomForest = binaryClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
+
+kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+resultDecisionTree = binaryClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
 
 
 
-len(X_train)
-len(y_train)
-counter = Counter(y_test)
-print(counter)
+# teeeeeeeeeeeeeeeeest
+#kitNot1or2[kitNot1or2['VAR_CLASS']==1]
 
-#Synthetic Minority Over-sampling Technique
-oversample = SMOTE(random_state=100,k_neighbors=2)
-X, y = oversample.fit_resample(X, y)
-counter = Counter(y)
-print(counter)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
-
-resultLinearSVR = ovoClassifier(LinearSVR())
-resultLinearSVC = ovoClassifier(LinearSVC())#----------
-resultNuSVR = ovoClassifier(NuSVC())
-#resultLinearSVR = ovoClassifier(NuSVR())
-resultOneClassSVM = ovoClassifier(OneClassSVM())######tiene in conto tutti i valori
-resultSVC = ovoClassifier(SVC())########
-resultSVR = ovoClassifier(SVR())#####
-resultSVR = ovoClassifier(LogisticRegression())#######
-
-clf = OneVsRestClassifier(classifier)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-score = accuracy_score(y_test, y_pred)
-confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-print(score)
-print(confusionMatrix)
+kitNot1or2 = training.loc[((training['resultTestRandomForest = binaryClassifierSmote(resultRandomForest.get_clf(),kitNot1or2)KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
 
 
+kitNot1or2 = training.loc[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
+resultTestDecisionTree = testClassifier(resultRandomForest.get_clf(),kitNot1or2)
 
-############    Random Forest ##################
-#Create a Gaussian Classifier
-clf=RandomForestClassifier(n_estimators=100)
+kitNot1or2 = training.loc[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
+resultTestDecisionTree = testClassifier(resultDecisionTree.get_clf(),kitNot1or2)
 
-#Train the model using the training sets y_pred=clf.predict(X_test)
-clf.fit(X_train,y_train)
-
-y_pred=clf.predict(X_test)
-confusion_matrix(y_test, y_pred, labels=[0, 1])
-accuracy_score(y_test, y_pred)
-print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
-############    Random Forest ##################
-
-############            DecisionTreeClassifier                          ##################OTTIMI RISULATI
-clf = DecisionTreeClassifier()
-
-# Train Decision Tree Classifer
-clf = clf.fit(X_train,y_train)
-#Predict the response for test dataset
-y_pred = clf.predict(X_test)
-#counter = Counter(t_pred)
-#print(counter)
+#############    Random Forest ##################
+##Create a Gaussian Classifier
+#clf=RandomForestClassifier(n_estimators=100)
+#
+##Train the model using the training sets y_pred=clf.predict(X_test)
+#clf.fit(X_train,y_train)
+#
+#y_pred=clf.predict(X_test)
+#confusion_matrix(y_test, y_pred, labels=[0, 1])
+#accuracy_score(y_test, y_pred)
+#############    Random Forest ##################
+#
+#############            DecisionTreeClassifier                          ##################OTTIMI RISULATI
+#clf = DecisionTreeClassifier()
+#
+## Train Decision Tree Classifer
+#clf = clf.fit(X_train,y_train)
+##Predict the response for test dataset
 #y_pred = clf.predict(X_test)
-confusion_matrix(y_test, y_pred, labels=[0, 1])
-accuracy_score(y_test, y_pred)
-############            DecisionTreeClassifier                          ##################
+##counter = Counter(t_pred)
+##print(counter)
+##y_pred = clf.predict(X_test)
+#confusion_matrix(y_test, y_pred, labels=[0, 1])
+#accuracy_score(y_test, y_pred)
+#############            DecisionTreeClassifier                          ##################
 
 
 
 
-kitNot1or2 = training[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
-kitNot1or2[kitNot1or2['VAR_CLASS']==1]
 
 
-#kitNot1or2 = kitNot1or2.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-#kitNot1or2 = kitNot1or2.loc[:,['VAR_CLASS']]
 
 
-Z,w = prepareTraining2(kitNot1or2)
-#Z_train, Z_test, w_train, w_test = train_test_split(Z, w, test_size=0.3, random_state=100)
-t_pred = clf.predict(T)
-counter = Counter(t_pred)
-print(counter)
-confusion_matrix(w, w_pred, labels=[0, 1])
-accuracy_score(w, w_pred)
 
 
 
@@ -410,38 +423,6 @@ kit2830968677.loc[:,['USAGE','VAR_CLASS']] = preprocessing.normalize(kit28309686
 #        allenare il model con il nuovo dataset, riallenarlo con il primo kitid1, kitid2,kitid3)
 #pulire il training dai kitid con 0 e allenare il modello
 #pulire il training dai kitid con 0 e allenare il modello, e riallenarlo con il training pulito da 1 e 2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
