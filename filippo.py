@@ -17,7 +17,7 @@ import sklearn as sk
 import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-
+from sklearn.naive_bayes import MultinomialNB
 training =pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
 # verifica valori null all'interno del training
 training = training.dropna()
@@ -617,12 +617,160 @@ logistic_regression
 
 #############################################
 
+#MultinomialNB
+
+X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
+# define model
+model2_b = MultinomialNB()
+
+# define the ovr strategy
+model3_b = OneVsRestClassifier(model2_b)
+# fit model
+model3_b.fit(X_train, y_train)
+# make predictions
+y_pred = model3_b.predict(X_test)
+y_pred
+MultinomialNB=accuracy_score(y_test, y_pred)
+MultinomialNB
+
+
+########################dopo aver testato con solo var_class=0, proviamo con il df iniziale 
+
+#MultinomialNB senza oversample
 
 
 
+def prepareTraining4(training):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
+    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
+    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
+    #da inserire il TS
+    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = training.loc[:,'VAR_CLASS']
+    
+    X = X.to_numpy()
+    y = y.to_numpy()
+    return (X,y)
+
+X,y = prepareTraining4(training)
+counter = Counter(y)
+print(counter)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+X_train
+len(X_train)
+len(y_train)
+counter = Counter(y_test)
+
+print(counter)
+
+#MultinomialNB
+
+X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
+# define model
+model2_b = MultinomialNB()
+# define the ovr strategy
+model3_b = OneVsRestClassifier(model2_b)
+# fit model
+model3_b.fit(X_train, y_train)
+# make predictions
+y_pred = model3_b.predict(X_test)
+y_pred
+MultinomialNB=accuracy_score(y_test, y_pred)
+MultinomialNB
+
+
+confusion= confusion_matrix(y_test, y_pred)
+print('Confusion Matrix\n')
+print(confusion)
 
 
 
+###########################MultinomialNB con onversample 
 
+
+def prepareTraining4(training):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
+    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
+    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
+    #da inserire il TS
+    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = training.loc[:,'VAR_CLASS']
+    
+    X = X.to_numpy()
+    y = y.to_numpy()
+    return (X,y)
+
+
+
+X,y = prepareTraining4(training)
+counter = Counter(y)
+print(counter)
+oversample = SMOTE(random_state=100,k_neighbors=2)
+X, y = oversample.fit_resample(X, y)
+counter = Counter(y)
+print(counter)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+X_train
+len(X_train)
+len(y_train)
+counter = Counter(y_test)
+
+print(counter)
+
+#MultinomialNB
+
+X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
+# define model
+model2_b = MultinomialNB()
+# define the ovr strategy
+model3_b = OneVsRestClassifier(model2_b)
+# fit model
+model3_b.fit(X_train, y_train)
+# make predictions
+y_pred = model3_b.predict(X_test)
+y_pred
+MultinomialNB=accuracy_score(y_test, y_pred)
+MultinomialNB #0.4083610379293708 
+confusion= confusion_matrix(y_test, y_pred)
+print('Confusion Matrix\n')
+print(confusion)
+###############################
+
+
+#logistic_regression
+X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
+# define model
+model2 = LogisticRegression()
+# define the ovr strategy
+model3 = OneVsRestClassifier(model2)
+# fit model
+model3.fit(X_train, y_train)
+# make predictions
+y_pred = model3.predict(X_test)
+y_pred
+logistic_regression=accuracy_score(y_test, y_pred)
+logistic_regression #0.536046305648106
+confusion= confusion_matrix(y_test, y_pred)
+print('Confusion Matrix\n')
+print(confusion)
+##################SVC
+X, y = make_classification(n_samples=2544, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
+# define model
+model = OneVsRestClassifier(SVC())
+# fit model
+model.fit(X_train, y_train)
+# make predictions
+y_pred = model.predict(X_test)
+y_pred
+SVC=accuracy_score(y_test, y_pred) 
+SVC
+#ci mette una vita a runnare
+confusion= confusion_matrix(y_test, y_pred)
+print('Confusion Matrix\n')
+print(confusion)
 
 
