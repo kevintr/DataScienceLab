@@ -18,6 +18,7 @@ import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.tree import DecisionTreeClassifier 
 training =pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
 # verifica valori null all'interno del training
 training = training.dropna()
@@ -44,9 +45,9 @@ training['TS'] = pd.to_datetime(training['TS'])
 # type(training.loc[0,'TS'] )
 training.loc[0,'TS']
 
-print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
-print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
-print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472
+print('VAR_CLASS 0: ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
+print('VAR_CLASS 1: ' + str(len(training[training['VAR_CLASS'] == 1])))#36
+print('VAR_CLASS 2: ' + str(len(training[training['VAR_CLASS'] == 2])))#472
 
 str(len(training[training['VAR_CLASS'] == 2]))
 
@@ -547,7 +548,13 @@ SVC=accuracy_score(y_test, y_pred) #0.893 - #: 0.6615566037735849
 SVC
 
 
+# training a DescisionTreeClassifier 
 
+dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
+y_pred = dtree_model.predict(X_test)
+ 
+dtree=accuracy_score(y_test, y_pred)
+dtree
 
 
 
@@ -633,7 +640,13 @@ y_pred
 MultinomialNB=accuracy_score(y_test, y_pred)
 MultinomialNB
 
+# training a DescisionTreeClassifier 
 
+dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
+y_pred = dtree_model.predict(X_test)
+ 
+dtree=accuracy_score(y_test, y_pred)
+dtree
 ########################dopo aver testato con solo var_class=0, proviamo con il df iniziale 
 
 #MultinomialNB senza oversample
@@ -678,7 +691,7 @@ model3_b.fit(X_train, y_train)
 y_pred = model3_b.predict(X_test)
 y_pred
 MultinomialNB=accuracy_score(y_test, y_pred)
-MultinomialNB
+MultinomialNB #0.4486539290656459
 
 
 confusion= confusion_matrix(y_test, y_pred)
@@ -687,7 +700,7 @@ print(confusion)
 
 
 
-###########################MultinomialNB con onversample 
+###########################PREPARAZIONE con onversample 
 
 
 def prepareTraining4(training):
@@ -712,6 +725,11 @@ oversample = SMOTE(random_state=100,k_neighbors=2)
 X, y = oversample.fit_resample(X, y)
 counter = Counter(y)
 print(counter)
+
+
+
+
+
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
 X_train
@@ -772,5 +790,17 @@ SVC
 confusion= confusion_matrix(y_test, y_pred)
 print('Confusion Matrix\n')
 print(confusion)
+########################################## Decision
+
+# training a DescisionTreeClassifier 
+
+dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
+y_pred = dtree_model.predict(X_test)
+ 
+dtree=accuracy_score(y_test, y_pred)
+dtree #0.6281149428348497
 
 
+
+
+print(Counter({0: 36, 1: 36, 2: 36}))
