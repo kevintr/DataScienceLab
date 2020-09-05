@@ -40,6 +40,7 @@ import datetime, time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import warnings
+from sklearn.model_selection import cross_val_predict
 
         
 training = pd.read_csv('training.csv', sep=';')  
@@ -275,8 +276,9 @@ def prepareTraining2(dateframe):
     return (X,y)
 
 
+
 #restituisce in outPut l'accuracy e la confusionMatrix per il classifier in input
-def binaryClassifierSmote(classifier,dataframe):
+def binaryHoldOutClassifierSmote(classifier,dataframe):
     X,y = prepareTraining2(dataframe)
     #Synthetic Minority Over-sampling Technique
     oversample = SMOTE(random_state=100,k_neighbors=2)
@@ -288,6 +290,25 @@ def binaryClassifierSmote(classifier,dataframe):
     y_pred = clf.predict(X_test)
     score = accuracy_score(y_test, y_pred)
     confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    print(score)
+    print(confusionMatrix)
+    results.set_accuracy_score(score)
+    results.set_confusion_matrix(confusionMatrix)
+    results.set_clf(clf)
+    return results
+
+def binaryCrossValidationClassifierSmote(classifier,dataframe):
+    X,y = prepareTraining2(dataframe)
+    #Synthetic Minority Over-sampling Technique
+    oversample = SMOTE(random_state=100,k_neighbors=2)
+    X, y = oversample.fit_resample(X, y)
+    results = Results()
+    clf = classifier
+    clf.fit(X_train, y_train)
+    y_pred = cross_val_predict(clf, X, y, cv=20)
+    score = accuracy_score(y, y_pred)
+    confusionMatrix = confusion_matrix(y, y_pred, labels=[0, 1])
 #    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
     print(score)
     print(confusionMatrix)
@@ -310,16 +331,37 @@ def testClassifier(clf1,dataframe):
     results.set_clf(clf1)
     return results
 
+def prepareTest(test):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    test.loc[:,'TS'] = pd.to_datetime(test.loc[:,'TS'])
+    test.loc[:,'TS'] = test.loc[:,'TS'] - epoch
+    test.loc[:,'TS'] = test.loc[:,'TS'].dt.total_seconds()
+    test = test.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    
+    #test = test_X.to_numpy()
+    test = test.dropna()
+    return (test)
+
 #training e test
 kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
 kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
 
+###### RandomForestClassifier con HouldOut
 kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultRandomForest = binaryClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
+resultRandomForest = binaryHoldOutClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
 
+###### DecisionTreeClassifier con HouldOut
 kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultDecisionTree = binaryClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
+resultDecisionTree = binaryHoldOutClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
 
+
+#####  RandomForestClassifier() Cross Validation ########
+kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+resultRandomForest = binaryCrossValidationClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
+
+##### DecisionTreeClassifier()  Cross Validation ########
+kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+resultDecisionTree = binaryCrossValidationClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
 
 
 # teeeeeeeeeeeeeeeeest
@@ -333,6 +375,14 @@ resultTestDecisionTree = testClassifier(resultRandomForest.get_clf(),kitNot1or2)
 
 kitNot1or2 = training.loc[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
 resultTestDecisionTree = testClassifier(resultDecisionTree.get_clf(),kitNot1or2)
+
+
+
+
+
+
+
+
 
 #############    Random Forest ##################
 ##Create a Gaussian Classifier
@@ -385,7 +435,7 @@ T = T.to_numpy()
 T = T[numpy.logical_not(numpy.isnan(T))]
 test.loc[:,'VAR_CLASS'] = pd.Series(t_pred)
 
-len(test[test['VAR_CLASS']== 1]['KIT_ID'].unique())
+len(test[(test['VAR_CLASS']== 1) | (test['VAR_CLASS']== 2)]['KIT_ID'].unique())
 len(test['KIT_ID'].unique())
 
 kit113054467 = test[test['KIT_ID'] == 113054467]
