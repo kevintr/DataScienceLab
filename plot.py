@@ -80,3 +80,30 @@ kit2487219358.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth
 kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 plt.show()
 ##################  Grafici separati ######################################################
+
+
+z = training[training['VAR_CLASS']==1]['KIT_ID']
+z = training[training['VAR_CLASS']==2]['KIT_ID']
+z = training[training['VAR_CLASS']==0]['KIT_ID']
+len(z.unique())
+z.unique()
+
+# Pie plot KIT_ID con disservizio e senza
+labels = 'Kit senza disservizio', 'Kit con disservizio'
+sizes = [1977, 3]
+colors = [ 'green', 'red']
+explode = (0, 0)  # explode 1st slice
+
+# Plot
+pyplot.pie(sizes, explode=explode, labels=labels, colors=colors,
+autopct='%1.1f%%', shadow=True, startangle=140)
+
+pyplot.axis('equal')
+pyplot.show()
+
+
+print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
+print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
+print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472
+
+

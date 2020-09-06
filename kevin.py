@@ -41,6 +41,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import warnings
 from sklearn.model_selection import cross_val_predict
+from sklearn.datasets import make_classification as make_classification
 
         
 training = pd.read_csv('training.csv', sep=';')  
@@ -51,6 +52,8 @@ training['TS'] = pd.to_datetime(training['TS'])
 print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
 print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
 print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472
+
+
 
 str(len(training[training['VAR_CLASS'] == 2]))
 
@@ -75,22 +78,22 @@ descriptiveQuantity = training[['USAGE','AVG_SPEED_DW','NUM_CLI']].describe().ap
 descriptiveQuantity
 
 
-def prepareTraining():
-    training = pd.read_csv('training.csv', sep=';')   
-    epoch = datetime.datetime.utcfromtimestamp(0)
-    training['TS'] = pd.to_datetime(training['TS'])
-    training['TS'] = training['TS'] - epoch
-    training['TS'] = training['TS'].dt.total_seconds()
-    #da inserire il TS
-    X = training[['TS','KIT_ID','USAGE','NUM_CLI']]
-    y = training['VAR_CLASS']
-    
-    X = X.to_numpy()
-    y = y.to_numpy()
-    return (X,y)
+#def prepareTraining():
+#    training = pd.read_csv('training.csv', sep=';')   
+#    epoch = datetime.datetime.utcfromtimestamp(0)
+#    training['TS'] = pd.to_datetime(training['TS'])
+#    training['TS'] = training['TS'] - epoch
+#    training['TS'] = training['TS'].dt.total_seconds()
+#    #da inserire il TS
+#    X = training[['TS','KIT_ID','USAGE','NUM_CLI']]
+#    y = training['VAR_CLASS']
+#    
+#    X = X.to_numpy()
+#    y = y.to_numpy()
+#    return (X,y)
 
 
-X,y = prepareTraining()
+#X,y = prepareTraining()
 #In terms of machine learning, Clf is an estimator instance, which is used to store model.
 #We use clf to store trained model values, which are further used to predict value, based on the previously stored weights.
 
@@ -100,7 +103,6 @@ oversample = SMOTE(random_state=100,k_neighbors=2)
 X, y = oversample.fit_resample(X, y)
 counter = Counter(y)
 print(counter)
-plot(counter)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
@@ -180,7 +182,7 @@ def ovoClassifier(classifier):
     y_pred = clf.predict(X_test)
     score = accuracy_score(y_test, y_pred)
     confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
-#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+#   confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
     print(score)
     print(confusionMatrix)
     ovoClassifierResults.set_accuracy_score(score)
@@ -283,7 +285,7 @@ def binaryHoldOutClassifierSmote(classifier,dataframe):
     #Synthetic Minority Over-sampling Technique
     oversample = SMOTE(random_state=100,k_neighbors=2)
     X, y = oversample.fit_resample(X, y)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100,stratify=y)
     results = Results()
     clf = classifier
     clf.fit(X_train, y_train)
@@ -377,13 +379,33 @@ kitNot1or2 = training.loc[((training['KIT_ID'] != 3409364152) & (training['KIT_I
 resultTestDecisionTree = testClassifier(resultDecisionTree.get_clf(),kitNot1or2)
 
 
+trainingReplace = training.replace(2,1)
+trainingReplace['VAR_CLASS'].unique()
+X,y = prepareTraining2(training)
+print(Counter(y))
+    ####################### Make classification ############################################################################
+Z,w = prepareTraining2(training)
+training
+
+counter = Counter(w)
+print(counter)
+type()
 
 
+training.loc[:,'VAR_CLASS'] = training.loc[:,'VAR_CLASS'] -1
+trainingCampionato = training.sample(n=1600 , replace=False,random_state=1000) #['VAR_CLASS']
+print(Counter(z['VAR_CLASS']))
+
+df = pd.DataFrame({'num_legs': [2, 4, 8, 0],
+                    'num_wings': [2, 0, 0, 0],
+                    'num_specimen_seen': [10, 2, 1, 8]},
+                   index=['falcon', 'dog', 'spider', 'fish'])
+df
 
 
-
-
-
+df['num_legs'].sample(n=3, random_state=1)
+df.sample(frac=0.5, replace=True, random_state=1)
+df.sample(n=4, weights='num_specimen_seen', random_state=1)
 #############    Random Forest ##################
 ##Create a Gaussian Classifier
 #clf=RandomForestClassifier(n_estimators=100)
@@ -409,19 +431,8 @@ resultTestDecisionTree = testClassifier(resultDecisionTree.get_clf(),kitNot1or2)
 #confusion_matrix(y_test, y_pred, labels=[0, 1])
 #accuracy_score(y_test, y_pred)
 #############            DecisionTreeClassifier                          ##################
-
-
-
-
-
-
-
-
-
-
-
 test1 = pd.read_csv('test.csv', sep=';')  
-T,t = prepareTraining2(test)
+T,t = prepareTest(test)
 
 test = test.dropna()
 
@@ -492,8 +503,6 @@ kit1629361016 = kit1629361016.set_index('TS')
 kit1629361016.plot()
 type(kit1629361016.loc[885,'TS'])
 
-
-
 X = kit1629361016.values
 diff = list()
 ore = 2160 # 24*60 /5 
@@ -539,3 +548,28 @@ len(X)
 
 
 
+training.loc[:,'VAR_CLASS'] = training.loc[:,'VAR_CLASS'].replace(2,1) 
+X,y = prepareTraining2(training)
+counter = Counter(y)
+print(counter)
+#Synthetic Minority Over-sampling Technique
+oversample = SMOTE(random_state=100,k_neighbors=2)
+X, y = oversample.fit_resample(X, y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100,stratify=y)
+counter = Counter(y_train)
+print(counter)
+counter = Counter(y_test)
+print(counter)
+results = Results()
+clf = RandomForestClassifier()
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+score = accuracy_score(y_test, y_pred)
+confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+print(score)
+print(confusionMatrix)
+results.set_accuracy_score(score)
+results.set_confusion_matrix(confusionMatrix)
+results.set_clf(clf)
+return results
