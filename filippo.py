@@ -1,8 +1,7 @@
-################################
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.metrics import accuracy_score,confusion_matrix,recall_score
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 from imblearn.under_sampling import NearMiss
@@ -19,788 +18,263 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.tree import DecisionTreeClassifier 
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+
 training =pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
-# verifica valori null all'interno del training
-training = training.dropna()
-
-training_test=training.groupby(['VAR_CLASS']).size().reset_index(name='counts')
-training_test.head()
-training_test.plot(kind='bar',x='VAR_CLASS',y='counts')
-training_test.plot(x='VAR_CLASS',y='counts')
-training_test.plot(kind='hist',x='VAR_CLASS',y='counts')
-training_test.plot(kind='kde',x='VAR_CLASS',y='counts')
 
 
 
-
-len(training['KIT_ID'].unique())
-counter = Counter(training['KIT_ID'])
-print(counter)
-
-#Trasformazione TS in datetime
-training['TS'] = pd.to_datetime(training['TS'])
-
-#training['TS'] = pd.to_numeric(training['TS'], downcast='float', errors='ignore')
-
-# type(training.loc[0,'TS'] )
-training.loc[0,'TS']
-
-print('VAR_CLASS 0: ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
-print('VAR_CLASS 1: ' + str(len(training[training['VAR_CLASS'] == 1])))#36
-print('VAR_CLASS 2: ' + str(len(training[training['VAR_CLASS'] == 2])))#472
-
-str(len(training[training['VAR_CLASS'] == 2]))
-
-#Analisi TS
-training['TS'] = pd.to_datetime(training['TS'])
-training['TS'].dt.year.unique()#2018
-training['TS'].dt.month.unique()#11
-training['TS'].dt.day.unique()#1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
-training['VAR_CLASS'].unique()#1,2,3
-training[training['NUM_CLI'] >= 100]
-
-
-# training['USAGE'].sort_values(ascending=True)
-
-trainingOrderByUSAGE = training.sort_values(by=['USAGE'])
-trainingOrderByAVG = training.sort_values(by=['AVG_SPEED_DW'])
-training.describe().apply(lambda s: s.apply(lambda x: format(x, 'g')))
-training['KIT_ID'].describe()
-
-descriptiveQuantity = training[['USAGE','AVG_SPEED_DW','NUM_CLI']].describe().apply(lambda s: s.apply(lambda x: format(x, 'g')))
-
-descriptiveQuantity
-
-
-def prepareTraining():
-    training = pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\progetto\training.csv",";")    
-    #da inserire il TS
-    X = training[['USAGE','KIT_ID','AVG_SPEED_DW','NUM_CLI']]
-    y = training['VAR_CLASS']
-    
-    X = X.to_numpy()
-    y = y.to_numpy()
-    return (X,y)
-
-X,y = prepareTraining()
-############## sono ripartito da qua#######################################
-#https://machinelearningmastery.com/one-vs-rest-and-one-vs-one-for-multi-class-classification/
-
-training
-
-#######prova 1
-undersample = NearMiss(version=1)
-#oversample = SMOTE(random_state=100,k_neighbors=2)
-X, y = undersample.fit_resample(X, y)
-counter = Counter(y)
-print(counter) #classi bilanciate(?)
-##################
-#################prova 2
-#nm = NearMiss()
-#X_res, y_res = nm.fit_resample(X, y)
-#print('Resampled dataset shape %s' % Counter(y_res))
-#lentisssimo 
-
-###################
-
-
-# logistic regression for multi-class classification using a one-vs-rest
-# define dataset
-
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model = LogisticRegression()
-# define the ovr strategy
-ovr = OneVsRestClassifier(model)
-# fit model
-ovr.fit(X, y)
-# make predictions
-yhat = ovr.predict(X)
-yhat
-y_pred = ovr.predict(X)
-logistic_regression=accuracy_score(y, y_pred)#0.696 con random state=1 con radom state=100 -> 0.652
-logistic_regression
-#########
-# logistic regression for multi-class classification using built-in one-vs-rest
-# define dataset
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = LogisticRegression(multi_class='ovr')
-# fit model
-model.fit(X, y)
-# make predictions
-yhat2 = model.predict(X)
-yhat2
-y_pred = model.predict(X)
-logistic_regression_2= accuracy_score(y, y_pred) #0.696
-logistic_regression_2
-
-#recall_score(y, y_pred)
-###################################
-####SVC - C-Support Vector Classification-
-# define dataset
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = OneVsRestClassifier(SVC())
-# fit model
-model.fit(X, y)
-# make predictions
-yhat2 = model.predict(X)
-yhat2
-y_pred = model.predict(X)
-SVC=accuracy_score(y, y_pred) #0.893
-SVC
-####################SVC LINEAR
-# define dataset
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = OneVsRestClassifier(LinearSVC())
-# fit model
-model.fit(X, y)
-# make predictions
-yhat2 = model.predict(X)
-yhat2
-y_pred = model.predict(X)
-SVC_LINEAR=accuracy_score(y, y_pred) #0.705
-SVC_LINEAR
-###########################
-
-#RandomForestClassifier
-
-#define dataset
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=100)
-# fit model
-model.fit(X, y)
-# make predictions
-yhat2 = model.predict(X)
-yhat2
-y_pred = model.predict(X)
-RandomForest= accuracy_score(y, y_pred) #0.736
-RandomForest
-
-############
-#neurale 
-
-#define dataset
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-NN = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-NN.fit(X, y)
-NN.predict(X[460:,:])
-round(NN.score(X,y), 4)#0.816
-
-
-#########################conversione data secondi
-df_time = pd.to_datetime(training['TS'])
-
-second= (df_time.dt.hour*60+df_time.dt.minute)*60 + df_time.dt.second+df_time.dt.day*86400
-
-second.head()
-second.tail()
-##################################################
+#  METODO -> ALGORITMO_RISULTATI(dataframe,preparazione,model)
+# Utilizzo del metodo:
+#     ALGORITMO_RISULTATI(dataframe,preparazione,model)
+#     preparazioni possibili:
+#                  1.prepareTraining_oversmaple (test e train sul training con oversample)
+#                  2.prepareTraining_senza1o2 (test= solo var_class=0, train=normale dataset)
+#                  3. prepareTraining2(test e train sul training senza oversample)
+#                  4. prepareTraining_kit123vstraining (train dataset normale e test kit123)
+#    scelta algoritmo:
+#                  1.Decision_Tree
+#                  2.Multinomialnb
+#                  3.Logisticregression
+#                  4. GaussianNB
 
 
 
-training['VAR_CLASS'].value_counts()
-prova= training[training['VAR_CLASS']==2]
-prova
-LOL=training.groupby('KIT_ID')
-LOL
+#GAUSS TOP PROVA (PIU' E' VICINO A ZERO MEGLIO E')
 
-training = training().reset_index()
-grouped = training.groupby('KIT_ID')['VAR_CLASS']
-grouped
-#loans.groupby('country_code')['loan_amount'].
-#df.groupby(['Animal']).mean()
-#de = sf[sf["lang"] == "de"]
 
-test=pd.read_csv(r"C:\Users\casul\OneDrive\Desktop\università\DS LAB\test.csv",";")
-test
+ALGORITMO_RISULTATI(training,prepareTraining2,Decision_Tree)
+ALGORITMO_RISULTATI(training,prepareTraining2,Multinomialnb)
+ALGORITMO_RISULTATI(training,prepareTraining_senza1o2,GaussiannB)
+ALGORITMO_RISULTATI(training,prepareTraining_oversmaple,GaussiannB)
+ALGORITMO_RISULTATI(training,prepareTraining_kit123vstraining,GaussiannB)#TRAIN=traininig TEST=KI123
+ALGORITMO_RISULTATI(training,prepareTraining_oversmaple ,GaussiannB)
+ALGORITMO_RISULTATI(training,prepareTraining_senza1o2,RANDOMFOREST)
+ALGORITMO_RISULTATI(training,prepareTraining_oversmaple ,RANDOMFOREST)
 
-test_1 = test.groupby('KIT_ID')
-test_1
 
-##############
-kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
-###########
+
+#ALGORITMO DEL RISULTATO
+
+def ALGORITMO_RISULTATI(dataframe,preparazione,model):
+    X_train, X_test, y_train, y_test= preparazione(dataframe)
+    Risultati=model(X_train, X_test, y_train, y_test)
+    return Risultati
 
 
 
 
 
-
-# CREO DIVERSI DATAFRAME PER KIT_ID
-
-# kit_id1 3409364152 
-# kit_id2 1629361016
-# kit_id3 2487219358 
-
-training_diff_kit = training[(training['KIT_ID']!=3409364152) &
-                             (training['KIT_ID']!=1629361016) &
-                             (training['KIT_ID']!=2487219358)]
-
-training_kit_id1 = training[training.KIT_ID==3409364152]
-training_kit_id2 = training[training.KIT_ID==1629361016]
-training_kit_id3 = training[training.KIT_ID==2487219358]
-
-def prepareTraining2(training):
+#############metodi per la preparazione
+#preparazione base 
+def prepareTrainingEXAM (dataset):
+    dataset= dataset.dropna()
     epoch = datetime.datetime.utcfromtimestamp(0)
-    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
-    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
-    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y =  training.loc[:,'VAR_CLASS']
-    
-    X = X.to_numpy()
-    y = y.to_numpy()
-    return (X,y)
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
+    X = dataset.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = dataset.loc[:,'VAR_CLASS']
+    X_1 = X.to_numpy()
+    y_1 = y.to_numpy()
+    return (X_1,y_1)
 
-X,y = prepareTraining2(training)
-counter = Counter(y)
-print(counter)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
+#preparazione dataset con oversample
 
-
-
-
-
-
-
-
-#ottengo var_class= 0 
-
-kitWith1or2 = training[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-kitNot1or2 = training[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
-
-
-
-
-dfmklsdffklsdfklsdfklòklòsdfklòdfjklsdf
-
-
-#31/08/20
-
-
-
-# CREO DIVERSI DATAFRAME PER KIT_ID e FACCIO LA PREPARE TRAINING PER KIT1
-
-# kit_id1 3409364152 
-# kit_id2 1629361016
-# kit_id3 2487219358 
-
-training_diff_kit = training[(training['KIT_ID']!=3409364152) &
-                             (training['KIT_ID']!=1629361016) &
-                             (training['KIT_ID']!=2487219358)]
-
-training_kit_id1 = training[training.KIT_ID==3409364152]
-training_kit_id2 = training[training.KIT_ID==1629361016]
-training_kit_id3 = training[training.KIT_ID==2487219358]
-
-
-
-
-
-print('0 ' + str(len(training_kit_id1[training_kit_id1['VAR_CLASS'] == 0])))#8480
-print('1 ' + str(len(training_kit_id1[training_kit_id1['VAR_CLASS'] == 1])))#12
-print('2 ' + str(len(training_kit_id1[training_kit_id1['VAR_CLASS'] == 2])))#140
-
-
-PROVA2020= training_kit_id1.drop(training_kit_id1[training_kit_id1.VAR_CLASS >0].index)
-
-print('0 ' + str(len(PROVA2020[PROVA2020['VAR_CLASS'] == 0])))#8480
-print('1 ' + str(len(PROVA2020[PROVA2020['VAR_CLASS'] == 1])))#0
-print('2 ' + str(len(PROVA2020[PROVA2020['VAR_CLASS'] == 2])))#0
-
-
-#PROVA2020 SI RIFERISCE AL DF CHE PRESENTA SOLTANTO IL KIT1 CON SOLTANTO VAR_CLASS=0
-
-
-#ORA PREPARO IL DATASET COME ABBIAMO FATTO FINO AD ORA
-
-def prepareTraining2(PROVA2020):
+def prepareTraining_oversmaple(dataset):
+    dataset= dataset.dropna()
     epoch = datetime.datetime.utcfromtimestamp(0)
-    PROVA2020.loc[:,'TS'] = pd.to_datetime(PROVA2020['TS'])
-    PROVA2020.loc[:,'TS'] = PROVA2020.loc[:,'TS'] - epoch
-    PROVA2020.loc[:,'TS'] = PROVA2020.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = PROVA2020.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y = PROVA2020.loc[:,'VAR_CLASS']
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
     
+    X = dataset.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = dataset.loc[:,'VAR_CLASS']
+    oversample = SMOTE(random_state=100,k_neighbors=2)
+    X, y = oversample.fit_resample(X, y)
     X = X.to_numpy()
     y = y.to_numpy()
-    return (X,y)
-X,y = prepareTraining2(PROVA2020)
-counter = Counter(y)
-print(counter)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+    return(X_train, X_test, y_train, y_test)
 
 
-
-
-
-
-#PROVO I VARI M0DELLI 
-
-#logistic_regression
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model = LogisticRegression()
-# define the ovr strategy
-ovr = OneVsRestClassifier(model)
-# fit model
-ovr.fit(X, y)
-# make predictions
-yhat = ovr.predict(X)
-yhat
-y_pred = ovr.predict(X)
-logistic_regression=accuracy_score(y, y_pred)#0.696 con random state=1 con radom state=100 -> 0.652
-logistic_regression
-
-
-####SVC - C-Support Vector Classification-
-# define dataset
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = OneVsRestClassifier(SVC())
-# fit model
-model.fit(X, y)
-# make predictions
-yhat2 = model.predict(X)
-yhat2
-y_pred = model.predict(X)
-SVC=accuracy_score(y, y_pred) #0.893
-SVC
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#PROVE BINARIE
-#PREPARAZIONE COLONNA 1=2
-training.loc[:,'VAR_CLASS'] = training.loc[:,'VAR_CLASS'].replace(2,1)
-training['VAR_CLASS'].value_counts() #0=16521526 1=508
-
-#preprazione test e train
-def prepareTraining2(training):
+#preparazione dataset con oversample e campione n=1000
+def prepareTraining_senza1o2(dataset):
+    varclass_0= dataset.drop(dataset[dataset.VAR_CLASS >0].index)
+    dataset= dataset.dropna()
     epoch = datetime.datetime.utcfromtimestamp(0)
-    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
-    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
-    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y =  training.loc[:,'VAR_CLASS']
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
+    
+    X = dataset.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = dataset.loc[:,'VAR_CLASS']
+    
     
     X = X.to_numpy()
     y = y.to_numpy()
-    return (X,y)
-
-X,y = prepareTraining2(training)
-counter = Counter(y)
-print(counter)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
-
-
-
-#########################EVENTUALE BILANCIAMENTO 
-
-
-####################################ALGORITMO 
-
-logreg = LogisticRegression()
-logreg.fit(X_train, y_train)
-y_pred = logreg.predict(X_test)
-
-#######risultati
-print(format(logreg.score(X_test, y_test))) #accuracy 0.99999999999
-
-confusion_matrix = confusion_matrix(y_test, y_pred)
-print(confusion_matrix)
-
-
-print(classification_report(y_test, y_pred))
+    X, y = make_classification(n_samples=1000, n_features=4, random_state=100)
+    X_1,y_1=prepareTrainingEXAM(varclass_0)
+    X_train, NO, y_train, no= train_test_split(X,y)
+    YES, X_test, yes, y_test= train_test_split(X_1,y_1)
+    return(X_train, X_test, y_train, y_test)
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#####################################################
-# CREO DIVERSI DATAFRAME PER KIT_ID e FACCIO LA PREPARE TRAINING PER KIT1
-
-# kit_id1 3409364152 
-# kit_id2 1629361016
-# kit_id3 2487219358 
-
-training_diff_kit = training[(training['KIT_ID']!=3409364152) &
-                             (training['KIT_ID']!=1629361016) &
-                             (training['KIT_ID']!=2487219358)]
-
-training_kit_id1 = training[training.KIT_ID==3409364152]
-training_kit_id2 = training[training.KIT_ID==1629361016]
-training_kit_id3 = training[training.KIT_ID==2487219358]
-
-
-
-
-
-print('0 ' + str(len(training_kit_id1[training_kit_id1['VAR_CLASS'] == 0])))#8480
-print('1 ' + str(len(training_kit_id1[training_kit_id1['VAR_CLASS'] == 1])))#12
-print('2 ' + str(len(training_kit_id1[training_kit_id1['VAR_CLASS'] == 2])))#140
-
-
-PROVA2020= training_kit_id1.drop(training_kit_id1[training_kit_id1.VAR_CLASS >0].index)
-
-print('0 ' + str(len(PROVA2020[PROVA2020['VAR_CLASS'] == 0])))#8480
-print('1 ' + str(len(PROVA2020[PROVA2020['VAR_CLASS'] == 1])))#0
-print('2 ' + str(len(PROVA2020[PROVA2020['VAR_CLASS'] == 2])))#0
-
-
-
-
-
-#LAVORIAMO CON PROVA2020
-#ABBIAMO 8480 ROW CON VAR_CLASS SOLO UGUALE A 0
-#♦OTTENIAMO CON SVC UN ACCURACY PARI A 0.893
-#KIT_ID==3409364152
-
-
-def prepareTraining2(PROVA2020):
+def prepareTraining_kit123vstraining(dataset):
+    dataset= dataset.dropna()
+    kit123 = dataset[(dataset['KIT_ID']!=3409364152) &
+                             (dataset['KIT_ID']!=1629361016) &
+                             (dataset['KIT_ID']!=2487219358)]
     epoch = datetime.datetime.utcfromtimestamp(0)
-    PROVA2020.loc[:,'TS'] = pd.to_datetime(PROVA2020['TS'])
-    PROVA2020.loc[:,'TS'] = PROVA2020.loc[:,'TS'] - epoch
-    PROVA2020.loc[:,'TS'] = PROVA2020.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = PROVA2020.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y = PROVA2020.loc[:,'VAR_CLASS']
-    
-    X = X.to_numpy()
-    y = y.to_numpy()
-    return (X,y)
-X,y = prepareTraining2(PROVA2020)
-counter = Counter(y)
-print(counter)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
-len(X_train)
-len(y_train)
-counter = Counter(y_test)
-print(counter)
-X, y = make_classification(n_samples=2544, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = OneVsRestClassifier(SVC())
-# fit model
-model.fit(X_train, y_train)
-# make predictions
-y_pred = model.predict(X_test)
-y_pred
-SVC=accuracy_score(y_test, y_pred) #0.893 - #: 0.6615566037735849
-SVC
-
-
-# training a DescisionTreeClassifier 
-
-dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
-y_pred = dtree_model.predict(X_test)
- 
-dtree=accuracy_score(y_test, y_pred)
-dtree
-
-
-
-
-
-#LAVORO CON PROVA2021= moltiplico per 50 le righe di PROVA2020
-#432480 row 
-PROVA2021 = PROVA2020.sample(n=16501599, random_state=1234, replace=True)
-#PROVA2021=PROVA2020.append([PROVA2020]*50,ignore_index=True)
-PROVA2021
-
-
-
-def prepareTraining3(PROVA2021):
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
+    dataset= dataset.dropna()
     epoch = datetime.datetime.utcfromtimestamp(0)
-    PROVA2021.loc[:,'TS'] = pd.to_datetime(PROVA2021['TS'])
-    PROVA2021.loc[:,'TS'] = PROVA2021.loc[:,'TS'] - epoch
-    PROVA2021.loc[:,'TS'] = PROVA2021.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = PROVA2021.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y = PROVA2021.loc[:,'VAR_CLASS']
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
+    
+    X = dataset.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = dataset.loc[:,'VAR_CLASS']
+    
     
     X = X.to_numpy()
     y = y.to_numpy()
-    return (X,y)
-
-
-X,y = prepareTraining3(PROVA2021)
-counter = Counter(y)
-print(counter)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
-len(X_train)
-len(y_train)
-counter = Counter(y_test)
-print(counter)
-X, y = make_classification(n_samples=2544, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = OneVsRestClassifier(SVC())
-# fit model
-model.fit(X_train, y_train)
-# make predictions
-y_pred = model.predict(X_test)
-y_pred
-SVC2021=accuracy_score(y_test, y_pred) #0.893 - #: 0.6615566037735849
-SVC2021
-
-#####################################################
-
-
-#####################################
-#logistic_regression
-X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model2 = LogisticRegression()
-# define the ovr strategy
-model3 = OneVsRestClassifier(model2)
-# fit model
-model3.fit(X_train, y_train)
-# make predictions
-y_pred = model3.predict(X_test)
-y_pred
-
-logistic_regression=accuracy_score(y_test, y_pred)#0.696 con random state=1 con radom state=100 -> 0.652
-logistic_regression
-
-#############################################
-
-#MultinomialNB
-
-X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model2_b = MultinomialNB()
-
-# define the ovr strategy
-model3_b = OneVsRestClassifier(model2_b)
-# fit model
-model3_b.fit(X_train, y_train)
-# make predictions
-y_pred = model3_b.predict(X_test)
-y_pred
-MultinomialNB=accuracy_score(y_test, y_pred)
-MultinomialNB
-
-# training a DescisionTreeClassifier 
-
-dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
-y_pred = dtree_model.predict(X_test)
- 
-dtree=accuracy_score(y_test, y_pred)
-dtree
-########################dopo aver testato con solo var_class=0, proviamo con il df iniziale 
-
-#MultinomialNB senza oversample
+    X, y = make_classification(n_samples=1000, n_features=4, random_state=100)
+    X_1,y_1=prepareTrainingEXAM(kit123)
+    X_train, NO, y_train, no= train_test_split(X,y)
+    YES, X_test, yes, y_test= train_test_split(X_1,y_1)
+    return(X_train, X_test, y_train, y_test)
 
 
 
-def prepareTraining4(training):
+#preparazione dataset senza oversample
+def prepareTraining2(dataset):
+    dataset= dataset.dropna()
     epoch = datetime.datetime.utcfromtimestamp(0)
-    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
-    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
-    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y = training.loc[:,'VAR_CLASS']
-    
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
+    X = dataset.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = dataset.loc[:,'VAR_CLASS']
     X = X.to_numpy()
     y = y.to_numpy()
-    return (X,y)
-
-X,y = prepareTraining4(training)
-counter = Counter(y)
-print(counter)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
-len(X_train)
-len(y_train)
-counter = Counter(y_test)
-
-print(counter)
-
-#MultinomialNB
-
-X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model2_b = MultinomialNB()
-# define the ovr strategy
-model3_b = OneVsRestClassifier(model2_b)
-# fit model
-model3_b.fit(X_train, y_train)
-# make predictions
-y_pred = model3_b.predict(X_test)
-y_pred
-MultinomialNB=accuracy_score(y_test, y_pred)
-MultinomialNB #0.4486539290656459
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+    return(X_train, X_test, y_train, y_test)
 
 
-confusion= confusion_matrix(y_test, y_pred)
-print('Confusion Matrix\n')
-print(confusion)
-
-
-
-###########################PREPARAZIONE con onversample 
-
-
-def prepareTraining4(training):
+def prepareTraining_kit1_2_3(dataset):
+    dataset= dataset.dropna()
+    dataset = dataset[(dataset['KIT_ID']!=3409364152) &
+                             (dataset['KIT_ID']!=1629361016) &
+                             (dataset['KIT_ID']!=2487219358)]
     epoch = datetime.datetime.utcfromtimestamp(0)
-    training.loc[:,'TS'] = pd.to_datetime(training['TS'])
-    training.loc[:,'TS'] = training.loc[:,'TS'] - epoch
-    training.loc[:,'TS'] = training.loc[:,'TS'].dt.total_seconds()
-    #da inserire il TS
-    X = training.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
-    y = training.loc[:,'VAR_CLASS']
+    dataset.loc[:,'TS'] = pd.to_datetime(dataset['TS'])
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'] - epoch
+    dataset.loc[:,'TS'] = dataset.loc[:,'TS'].dt.total_seconds()
     
+    X = dataset.loc[:,['TS','KIT_ID','USAGE','NUM_CLI']]
+    y = dataset.loc[:,'VAR_CLASS']
+    oversample = SMOTE(random_state=100,k_neighbors=2)
+    X, y = oversample.fit_resample(X, y)
     X = X.to_numpy()
     y = y.to_numpy()
-    return (X,y)
-
-
-
-X,y = prepareTraining4(training)
-counter = Counter(y)
-print(counter)
-oversample = SMOTE(random_state=100,k_neighbors=2)
-X, y = oversample.fit_resample(X, y)
-counter = Counter(y)
-print(counter)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+    return(X_train, X_test, y_train, y_test)
 
 
 
 
+#metodi per gli algo
+
+#decision tree
+def Decision_Tree(X_train, X_test, y_train, y_test):
+    dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
+    y_pred = dtree_model.predict(X_test)
+    b= print('\nAccuracy: {:.4f}\n'.format(accuracy_score(y_test, y_pred)))
+    c= print('Micro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='micro')))
+    d= print('Micro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='micro')))
+    e= print('Micro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='micro')))
+    f= print('Macro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='macro')))
+    g= print('Macro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='macro')))
+    h=print('Macro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='macro')))
+    i= print('Weighted Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='weighted')))
+    l= print('Weighted Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='weighted')))
+    m=print('Weighted F1-score: {:.2f}'.format(f1_score(y_test, y_pred, average='weighted')))
+    return(b,c,d,e,f,g,h,i,l,m)
+#Logisticregression
+
+def Logisticregression(X_train, X_test, y_train, y_test):
+    model_logistic= LogisticRegression()
+    logistic_model=OneVsRestClassifier(model_logistic)
+    logistic_model.fit(X_train, y_train) 
+    y_pred = logistic_model.predict(X_test)
+    b= print('\nAccuracy: {:.4f}\n'.format(accuracy_score(y_test, y_pred)))
+    c= print('Micro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='micro')))
+    d= print('Micro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='micro')))
+    e= print('Micro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='micro')))
+    f= print('Macro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='macro')))
+    g= print('Macro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='macro')))
+    h=print('Macro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='macro')))
+    i= print('Weighted Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='weighted')))
+    l= print('Weighted Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='weighted')))
+    m=print('Weighted F1-score: {:.2f}'.format(f1_score(y_test, y_pred, average='weighted')))
+    return(b,c,d,e,f,g,h,i,l,m)
+
+#
+def Multinomialnb(X_train, X_test, y_train, y_test):
+    model_nb= MultinomialNB()
+    nb_model=OneVsRestClassifier(model_nb)
+    nb_model.fit(X_train, y_train) 
+    y_pred = nb_model.predict(X_test)
+    b= print('\nAccuracy: {:.4f}\n'.format(accuracy_score(y_test, y_pred)))
+    c= print('Micro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='micro')))
+    d= print('Micro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='micro')))
+    e= print('Micro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='micro')))
+    f= print('Macro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='macro')))
+    g= print('Macro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='macro')))
+    h=print('Macro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='macro')))
+    i= print('Weighted Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='weighted')))
+    l= print('Weighted Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='weighted')))
+    m=print('Weighted F1-score: {:.2f}'.format(f1_score(y_test, y_pred, average='weighted')))
+    return(b,c,d,e,f,g,h,i,l,m)
+
+def GaussiannB(X_train, X_test, y_train, y_test):
+    model_nb= GaussianNB()
+    nb_model=OneVsRestClassifier(model_nb)
+    nb_model.fit(X_train, y_train) 
+    y_pred = nb_model.predict(X_test)
+    b= print('\nAccuracy: {:.4f}\n'.format(accuracy_score(y_test, y_pred)))
+    c= print('Micro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='micro')))
+    d= print('Micro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='micro')))
+    e= print('Micro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='micro')))
+    f= print('Macro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='macro')))
+    g= print('Macro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='macro')))
+    h=print('Macro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='macro')))
+    i= print('Weighted Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='weighted')))
+    l= print('Weighted Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='weighted')))
+    m=print('Weighted F1-score: {:.2f}'.format(f1_score(y_test, y_pred, average='weighted')))
+    return(b,c,d,e,f,g,h,i,l,m)
 
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-X_train
-len(X_train)
-len(y_train)
-counter = Counter(y_test)
-
-print(counter)
-
-#MultinomialNB
-
-X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model2_b = MultinomialNB()
-# define the ovr strategy
-model3_b = OneVsRestClassifier(model2_b)
-# fit model
-model3_b.fit(X_train, y_train)
-# make predictions
-y_pred = model3_b.predict(X_test)
-y_pred
-MultinomialNB=accuracy_score(y_test, y_pred)
-MultinomialNB #0.4083610379293708 
-confusion= confusion_matrix(y_test, y_pred)
-print('Confusion Matrix\n')
-print(confusion)
-###############################
-
-
-#logistic_regression
-X, y = make_classification(n_samples=4950480, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=100)
-# define model
-model2 = LogisticRegression()
-# define the ovr strategy
-model3 = OneVsRestClassifier(model2)
-# fit model
-model3.fit(X_train, y_train)
-# make predictions
-y_pred = model3.predict(X_test)
-y_pred
-logistic_regression=accuracy_score(y_test, y_pred)
-logistic_regression #0.536046305648106
-confusion= confusion_matrix(y_test, y_pred)
-print('Confusion Matrix\n')
-print(confusion)
-##################SVC
-X, y = make_classification(n_samples=2544, n_features=10, n_informative=5, n_redundant=5, n_classes=3, random_state=1)
-# define model
-model = OneVsRestClassifier(SVC())
-# fit model
-model.fit(X_train, y_train)
-# make predictions
-y_pred = model.predict(X_test)
-y_pred
-SVC=accuracy_score(y_test, y_pred) 
-SVC
-#ci mette una vita a runnare
-confusion= confusion_matrix(y_test, y_pred)
-print('Confusion Matrix\n')
-print(confusion)
-########################################## Decision
-
-# training a DescisionTreeClassifier 
-
-dtree_model = DecisionTreeClassifier(max_depth = 2).fit(X_train, y_train) 
-y_pred = dtree_model.predict(X_test)
- 
-dtree=accuracy_score(y_test, y_pred)
-dtree #0.6281149428348497
-
-
-
-
-print(Counter({0: 36, 1: 36, 2: 36}))
+def RANDOMFOREST(X_train,X_test, y_train, y_test):
+    RF= RandomForestClassifier()
+    RF_Model=OneVsRestClassifier(RF)
+    RF_Model.fit(X_train, y_train)
+    y_pred=RF_Model.predict(X_test)         
+    b= print('\nAccuracy: {:.4f}\n'.format(accuracy_score(y_test, y_pred)))
+    c= print('Micro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='micro')))
+    d= print('Micro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='micro')))
+    e= print('Micro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='micro')))
+    f= print('Macro Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='macro')))
+    g= print('Macro Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='macro')))
+    h=print('Macro F1-score: {:.2f}\n'.format(f1_score(y_test, y_pred, average='macro')))
+    i= print('Weighted Precision: {:.2f}'.format(precision_score(y_test, y_pred, average='weighted')))
+    l= print('Weighted Recall: {:.2f}'.format(recall_score(y_test, y_pred, average='weighted')))
+    m=print('Weighted F1-score: {:.2f}'.format(f1_score(y_test, y_pred, average='weighted')))
+    return(b,c,d,e,f,g,h,i,l,m)
