@@ -305,6 +305,7 @@ def binaryCrossValidationClassifierSmote(classifier,dataframe):
     #Synthetic Minority Over-sampling Technique
     oversample = SMOTE(random_state=100,k_neighbors=2)
     X, y = oversample.fit_resample(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100,stratify=y)
     results = Results()
     clf = classifier
     clf.fit(X_train, y_train)
@@ -431,7 +432,7 @@ df.sample(n=4, weights='num_specimen_seen', random_state=1)
 #confusion_matrix(y_test, y_pred, labels=[0, 1])
 #accuracy_score(y_test, y_pred)
 #############            DecisionTreeClassifier                          ##################
-test1 = pd.read_csv('test.csv', sep=';')  
+test = pd.read_csv('test.csv', sep=';')  
 T,t = prepareTest(test)
 
 test = test.dropna()
@@ -503,49 +504,6 @@ kit1629361016 = kit1629361016.set_index('TS')
 kit1629361016.plot()
 type(kit1629361016.loc[885,'TS'])
 
-X = kit1629361016.values
-diff = list()
-ore = 2160 # 24*60 /5 
-for i in range(ore, len(X)):
-	value = X[i] - X[i - ore]
-	diff.append(value)
-pyplot.plot(diff)
-pyplot.show()
-
-X = kit1629361016.values
-diff = list()
-days = 2016  ##288 * 7
-for i in range(days, len(X)):
-	value = X[i] - X[i - days]
-	diff.append(value)
-pyplot.plot(diff)
-pyplot.show()
-
-
-# fit polynomial: x^2*b1 + x*b2 + ... + bn
-X = [i%288 for i in range(0, len(kit1629361016))]
-y = kit1629361016.values
-degree = 4
-coef = np.polyfit(X, y, degree)
-print('Coefficients: %s' % coef)
-# create curve
-curve = list()
-for i in range(len(X)):
-	value = coef[-1]
-	for d in range(degree):
-		value += X[i]**(degree-d) * coef[d]
-	curve.append(value)
-# plot curve over original data
-pyplot.plot(kit1629361016.values)
-pyplot.plot(curve, color='red', linewidth=3)
-pyplot.show()
-
-
-pyplot.plot(kit1629361016.values)
-len(X)
-
-
-
 
 
 training.loc[:,'VAR_CLASS'] = training.loc[:,'VAR_CLASS'].replace(2,1) 
@@ -573,3 +531,41 @@ results.set_accuracy_score(score)
 results.set_confusion_matrix(confusionMatrix)
 results.set_clf(clf)
 return results
+
+
+
+
+
+test = pd.read_csv('test.csv', sep=';')  
+
+epoch = datetime.datetime.utcfromtimestamp(0)
+test.loc[:,'TS'] = pd.to_datetime(test.loc[:,'TS'])
+test.loc[:,'TS'] = test.loc[:,'TS'] - epoch
+test.loc[:,'TS'] = test.loc[:,'TS'].dt.total_seconds()
+
+
+s = pd.to_datetime(test.loc[:,'TS'] + epoch)
+
+test.loc[0,'TS']
+
+
+def fromSecondToDate(dataframe):
+    dataframe.loc[:,'TS'] = pd.to_timedelta(dataframe.loc[:,'TS'],unit='s')+ epoch
+    return dataframe
+
+
+test = fromSecondToDate(test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

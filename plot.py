@@ -110,4 +110,5 @@ print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
 print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
 print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472
 
+training['VAR_CLASS'].value_counts()
 
