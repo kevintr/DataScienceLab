@@ -35,7 +35,7 @@ def plotUsageAndNumcliAndVarClassByTS(dataFrame):
     pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'USAGE'],linewidth=1)
     pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS'], color='red',linewidth=None,edgecolors=None , marker='o')
     pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'NUM_CLI'], color='c',linewidth=3)
-    pyplot.xticks(np.arange(min(dataFrame['TS']), max(dataFrame['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=1)),rotation=30)
+    pyplot.xticks(np.arange(min(dataFrame['TS']), max(dataFrame['TS'])+datetime.timedelta(days=1), datetime.timedelta(days=1)),rotation=70)
     pyplot.legend(('USAGE', 'NUM_CLI', 'VAR_CLASS'))
     pyplot.show()
     return pyplot.show()
@@ -50,9 +50,13 @@ kit3409364152 = training.loc[(training.loc[:,'KIT_ID'] == 3409364152)]
 kit1629361016 = training.loc[(training.loc[:,'KIT_ID'] == 1629361016)]
 kit2487219358 = training.loc[(training.loc[:,'KIT_ID'] == 2487219358)]
 
-plotUsageAndNumcliAndVarClassByTS(kit3409364152) 
-plotUsageAndNumcliAndVarClassByTS(kit1629361016) 
-plotUsageAndNumcliAndVarClassByTS(kit2487219358) 
+print("3409364152"+str(kit3409364152.loc[:,'AVG_SPEED_DW'].unique()))
+print("1629361016"+str(kit1629361016.loc[:,'AVG_SPEED_DW'].unique()))
+print("2487219358"+str(kit2487219358.loc[:,'AVG_SPEED_DW'].unique()))
+
+plotUsageAndNumcliAndVarClassByTS(kit3409364152)
+plotUsageAndNumcliAndVarClassByTS(kit1629361016)
+plotUsageAndNumcliAndVarClassByTS(kit2487219358)
 
 
 #####################Prove per mettere null ai valori di ts che non sono presenti #########
@@ -80,3 +84,31 @@ kit2487219358.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth
 kit2487219358.plot(x='TS',y='AVG_SPEED_DW',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
 plt.show()
 ##################  Grafici separati ######################################################
+
+
+z = training[training['VAR_CLASS']==1]['KIT_ID']
+z = training[training['VAR_CLASS']==2]['KIT_ID']
+z = training[training['VAR_CLASS']==0]['KIT_ID']
+len(z.unique())
+z.unique()
+
+# Pie plot KIT_ID con disservizio e senza
+labels = 'Kit senza disservizio', 'Kit con disservizio'
+sizes = [1977, 3]
+colors = [ 'green', 'red']
+explode = (0, 0)  # explode 1st slice
+
+# Plot
+pyplot.pie(sizes, explode=explode, labels=labels, colors=colors,
+autopct='%1.1f%%', shadow=True, startangle=140)
+
+pyplot.axis('equal')
+pyplot.show()
+
+
+print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
+print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
+print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472
+
+training['VAR_CLASS'].value_counts()
+
