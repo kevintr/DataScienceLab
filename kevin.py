@@ -7,7 +7,7 @@ This is a temporary script file.
 import pandas as pd
 import numpy as np
 import os #os è un libreria per induviduare la directory dove ci si trova
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta 
 from sklearn import tree
 #import weka.core.jvm as jvm
 from sklearn.metrics import classification_report, confusion_matrix,accuracy_score,recall_score
@@ -44,6 +44,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.datasets import make_classification as make_classification
 from plotDsLab import plotUsageAndNumcliAndVarClassByTS
 import methodAnalysTraining
+from statsmodels.tsa.arima_model import ARIMA
 
         
 training = pd.read_csv('training.csv', sep=';')  
@@ -211,6 +212,11 @@ kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_
 resultDecisionTree = methodAnalysTraining.binaryHoldOutClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
 
 
+
+kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+resultDecisionTree = methodAnalysTraining.binaryHoldOutClassifierSmoteDATETIME(DecisionTreeClassifier(),kitWith1or2)
+
+
 #####  RandomForestClassifier() Cross Validation ########
 kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
 resultRandomForest = methodAnalysTraining.binaryCrossValidationClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
@@ -230,7 +236,9 @@ kitNot1or21Milion =  kitNot1or2.sample(n=1000000,replace=False)
 
 frames = [kitNot1or21Milion, kitWith1or2]
 result = pd.concat(frames)
-resultRandomForest = methodAnalysTraining.binaryHoldOutClassifierSmote(RandomForestClassifier(n_estimators=100),result)
+resultRandomForest = methodAnalysTraining.binaryHoldOutClassifierSmoteDATETIME(RandomForestClassifier(n_estimators=100),result)
+resultRandomForest = methodAnalysTraining.binaryCrossValidationClassifierSmote(RandomForestClassifier(n_estimators=100),result)
+
 
 
 
@@ -249,7 +257,7 @@ X,y = methodAnalysTraining.prepareTraining2(training)
 print(Counter(y))
 
 ####################### Make classification ############################################################################
-Z,w = methodAnalysTraining.prepareTraining2(training)
+Z,w = methodAnalysTraining.prepareTraining2(kit3409364152)
 training
 
 counter = Counter(w)
@@ -265,11 +273,17 @@ kit3409364152 = training.loc[training['KIT_ID'] == 3409364152]
 kit1629361016 = training.loc[training['KIT_ID']== 1629361016]
 kit2487219358 = training.loc[training['KIT_ID']== 2487219358]
 
-y_pred3409364152 = resultRandomForest.get_clf().predict()
+#y_pred3409364152 = resultRandomForest.get_clf()
 
-methodAnalysTraining.plotPredKitID(kit3409364152,resultRandomForest.get_clf())
-methodAnalysTraining.plotPredKitID(kit1629361016,resultRandomForest.get_clf())
-methodAnalysTraining.plotPredKitID(kit2487219358,resultRandomForest.get_clf())
+
+###### tipologia 1 ##############
+methodAnalysTraining.plotPredKitID(kit3409364152,resultRandomForest.get_clf())### in  input un kit e un modello allennato 
+methodAnalysTraining.plotPredKitID(kit1629361016,resultRandomForest.get_clf())### in  input un kit e un modello allennato 
+methodAnalysTraining.plotPredKitID(kit2487219358,resultRandomForest.get_clf())### in  input un kit e un modello allennato 
+
+# il modello allenato
+# plotPredKitID
+# cambiare kit 
 
 #############    Random Forest ##################
 ##Create a Gaussian Classifier
@@ -303,7 +317,7 @@ y_pred = resultRandomForest.get_clf().predict(T)
 
 test.loc[:,'VAR_CLASS'] = pd.Series(y_pred)
 
-test.loc[:,'VAR_CLASS'].vvalues_counts()
+test.loc[:,'VAR_CLASS'].value_counts()
 
 len(test[(test['VAR_CLASS']== 1) | (test['VAR_CLASS']== 2)]['KIT_ID'].unique())## 377
 len(test['KIT_ID'].unique()) ##2121
@@ -356,13 +370,64 @@ test = pd.read_csv('test.csv', sep=';')
 
 
 
+def parser(x):
+	return datetime.strptime('190'+x, '%Y-%m')
+ 
+series = read_csv('shampoo-sales.csv', header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+# fit model
+training
+kitWith1or2 = kitWith1or2['USAGE']
+kitWith1or2 = kitWith1or2.set_index('TS')
+
+#fit model
+model = ARIMA(kitWith1or2, order=(5,1,0))
+model_fit = model.fit(disp=0)
+print(model_fit.summary())
+# plot residual errors
+residuals = pd.DataFrame(model_fit.resid)
+residuals.plot()
+pyplot.show()
+residuals.plot(kind='kde')
+pyplot.show()
+print(residuals.describe())
 
 
 
 
 
+def parser(x):
+	return pd.datetime.strptime('190'+x, '%Y-%m')
+ 
+series = pd.read_csv('series.csv', header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+print(series.head())
+series.plot()
+pyplot.show()
+
+
+
+model = ARIMA(series, order=(5,1,0))
+model_fit = model.fit(disp=0)
+print(model_fit.summary())
+# plot residual errors
+residuals = pd.DataFrame(model_fit.resid)
+residuals.plot()
+pyplot.show()
+residuals.plot(kind='kde')
+pyplot.show()
+print(residuals.describe())
 
 
 
 
+########################### TO DATE TIME###########################
+
+
+
+training = methodAnalysTraining.toDateDataframe(training)
+test = methodAnalysTraining.toDateDataframe(test)
+ 
+X,y = prepareTrainingDataframeDatetime()
+
+
+test.to_csv 
 
