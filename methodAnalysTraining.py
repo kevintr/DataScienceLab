@@ -216,6 +216,9 @@ def plotPredKitID(dataframe,clf):
     dataframe = fromSecondToDate(dataframe)
     plotUsageAndNumcliAndVarClassByTS(dataframe,True)
     
+def plotKitID(dataframe,clf):
+    plotUsageAndNumcliAndVarClassByTS(dataframe,False)
+    
 
         
 def fromSecondToDate(dataframe):

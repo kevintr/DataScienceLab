@@ -36,8 +36,8 @@ def plotUsageAndNumcliAndVarClassByTS(dataFrame,pred):
         
         pyplot.figure(figsize=(15,2))
         pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'USAGE'],linewidth=1)
-        pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS'], color='red',linewidth=None,edgecolors=None , marker='o')
-        pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'NUM_CLI'], color='c',linewidth=3)
+        pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS'], color='darkblue',linewidth=None,edgecolors=None , marker='o')
+        pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'NUM_CLI'], color='aqua',linewidth=3)
         pyplot.xticks(np.arange(min(dataFrame['TS']), max(dataFrame['TS'])+timedelta(days=1), timedelta(days=1)),rotation=70)
         pyplot.legend(('USAGE', 'NUM_CLI', 'VAR_CLASS'))
         pyplot.show()
@@ -51,7 +51,7 @@ def plotUsageAndNumcliAndVarClassByTS(dataFrame,pred):
         pyplot.figure(figsize=(15,2))
         pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'USAGE'],linewidth=1)
         pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS'],linewidth=0.25,color='darkblue',edgecolors=None , marker='.')
-        pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS_PRED'] + 0.25, color='lightblue',edgecolors=None , marker='.')
+        pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS_PRED'] + 0.25, color='c',edgecolors=None , marker='.')
 #        pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'NUM_CLI'], color='c',linewidth=3)
         pyplot.xticks(np.arange(min(dataFrame['TS']), max(dataFrame['TS'])+timedelta(days=1), timedelta(days=1)),rotation=70)
         pyplot.legend((
