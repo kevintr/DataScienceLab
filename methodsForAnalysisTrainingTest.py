@@ -2,49 +2,17 @@
 """
 Created on Mon Sep  7 23:34:29 2020
 
-@author: Kevin Tranchina ,Filippo Maria Casula ,Giulia , Enrico Ragusa
+@author: Kevin Tranchina ,Filippo Maria Casula ,Giulia Mura, Enrico Ragusa
 """
 
 
 import pandas as pd
-import numpy as np
-import os #os è un libreria per induviduare la directory dove ci si trova
-from datetime import datetime, timedelta
-from sklearn import tree
-#import weka.core.jvm as jvm
-from sklearn.metrics import classification_report, confusion_matrix,accuracy_score,recall_score
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import  confusion_matrix,accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn import metrics
-from sklearn import datasets
-from sklearn.multiclass import OutputCodeClassifier
-from sklearn.svm import *
-#from sklearn import MultinomialNB
-import sklearn
-from sklearn import svm
-from sklearn.multiclass import OneVsRestClassifier,OneVsOneClassifier
-import imblearn
 from imblearn.over_sampling import SMOTE
-from sklearn import svm
-from sklearn.linear_model import LogisticRegression
-from collections import Counter
-from sklearn.datasets import make_classification
-from matplotlib import pyplot
-from numpy import where
-import numpy
-from imblearn.under_sampling import NearMiss
 import datetime
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn import preprocessing
-import datetime, time
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
-import warnings
 from sklearn.model_selection import cross_val_predict
-from sklearn.datasets import make_classification as make_classification
-from plotDsLab import plotUsageAndNumcliAndVarClassByTS
+from plotDSLab import plotUsageAndNumcliAndVarClassByTS
 from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import uniform
 
@@ -57,6 +25,8 @@ class Results:
         self.__clf = clf
         self.__dataframe = dataframe
         
+        #In terms of machine learning, Clf is an estimator instance, which is used to store model.
+        #We use clf to store trained model values, which are further used to predict value, based on the previously stored weights.
     def __init__(self):
         ## private varibale or property in Python
         pass
@@ -92,23 +62,10 @@ class Results:
         self.dataframe = dataframe
 
 #restituisce in outPut l'accuracy e la confusionMatrix per il classifier in input
-def ovoClassifier(classifier):
-    ovoClassifierResults = Results()
-    clf = OneVsRestClassifier(classifier)
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    score = accuracy_score(y_test, y_pred)
-    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
-#   confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-    print(score)
-    print(confusionMatrix)
-    ovoClassifierResults.set_accuracy_score(score)
-    ovoClassifierResults.set_confusion_matrix(confusionMatrix)
-    return ovoClassifierResults
 
 
 def prepareTraining2(dateframe):
-    epoch = datetime.datetime.utcfromtimestamp(0)
+    epoch = datetime.utcfromtimestamp(0)
     dateframe.loc[:,'TS'] = pd.to_datetime(dateframe.loc[:,'TS'])
     dateframe.loc[:,'TS'] = dateframe.loc[:,'TS'] - epoch
     dateframe.loc[:,'TS'] = dateframe.loc[:,'TS'].dt.total_seconds()
@@ -121,7 +78,6 @@ def prepareTraining2(dateframe):
     return (X,y)
 
 
-#restituisce in outPut l'accuracy e la confusionMatrix per il classifier in input
 def binaryHoldOutClassifierSmote(classifier,dataframe):
     X,y = prepareTraining2(dataframe)
     #Synthetic Minority Over-sampling Technique
@@ -134,7 +90,25 @@ def binaryHoldOutClassifierSmote(classifier,dataframe):
     y_pred = clf.predict(X_test)
     score = accuracy_score(y_test, y_pred)
     confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
-#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
+    print(score)
+    print(confusionMatrix)
+    results.set_accuracy_score(score)
+    results.set_confusion_matrix(confusionMatrix)
+    results.set_clf(clf)
+    return results
+
+def multinominalHoldOutClassifierSmote(classifier,dataframe):
+    X,y = prepareTraining2(dataframe)
+    #Synthetic Minority Over-sampling Technique
+    oversample = SMOTE(random_state=100,k_neighbors=2)
+    X, y = oversample.fit_resample(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100,stratify=y)
+    results = Results()
+    clf = classifier
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    score = accuracy_score(y_test, y_pred)
+    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
     print(score)
     print(confusionMatrix)
     results.set_accuracy_score(score)

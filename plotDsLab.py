@@ -2,14 +2,12 @@
 """
 Created on Sun Aug 30 21:41:32 2020
 
-@author: Kevin Tranchina ,Filippo Maria Casula ,Giulia , Enrico Ragusa
+@author: Kevin Tranchina ,Filippo Maria Casula ,Giulia Mura , Enrico Ragusa
 """
-import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 import matplotlib.pyplot as pyplot
 
-#funzione di normalizzazione necessaria per sovrappore i grafici
+#normalize function prerequisite to overlapping plots of usage , num_cli, var_class
 def normalizeSeries(seriesInDatframe):
     if(seriesInDatframe.max()-seriesInDatframe.min() ==0):
         seriesInDatframe=0
@@ -18,7 +16,6 @@ def normalizeSeries(seriesInDatframe):
         seriesInDatframe.max()-seriesInDatframe.min())
     return seriesInDatframe
 
-#Il metodo normalizza Usage NumCli e VarClass, prima di costituire il grafico per ognuno dei 3 valori e poi sovrapporli
 def plotUsageAndNumcliAndVarClassByTS(dataFrame,pred):
     if(pred == False):
         #Normalize 
@@ -26,6 +23,7 @@ def plotUsageAndNumcliAndVarClassByTS(dataFrame,pred):
         dataFrame.loc[:,'VAR_CLASS']= normalizeSeries(dataFrame.loc[:,'VAR_CLASS'])
         dataFrame.loc[:,'NUM_CLI']= normalizeSeries(dataFrame.loc[:,'NUM_CLI'])
         
+        #plot sixe colors
         pyplot.figure(figsize=(15,2))
         pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'USAGE'],linewidth=1)
         pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS'], color='darkblue',linewidth=None,edgecolors=None , marker='o')
@@ -39,7 +37,9 @@ def plotUsageAndNumcliAndVarClassByTS(dataFrame,pred):
         dataFrame.loc[:,'VAR_CLASS']= normalizeSeries(dataFrame.loc[:,'VAR_CLASS'])
         dataFrame.loc[:,'VAR_CLASS_PRED']= normalizeSeries(dataFrame.loc[:,'VAR_CLASS_PRED'])
         dataFrame.loc[:,'NUM_CLI']= normalizeSeries(dataFrame.loc[:,'NUM_CLI'])
+
         
+        #plot sixe colors
         pyplot.figure(figsize=(15,2))
         pyplot.plot(dataFrame.loc[:,'TS'],dataFrame.loc[:,'USAGE'],linewidth=1)
         pyplot.scatter(dataFrame.loc[:,'TS'],dataFrame.loc[:,'VAR_CLASS'],linewidth=0.25,color='darkblue',edgecolors=None , marker='.')
