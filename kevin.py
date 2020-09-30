@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Spyder Editor
-
 This is a temporary script file.
+@author:  Kevin Tranchina ,Filippo Maria Casula ,Giulia , Enrico Ragusa
 """
 import pandas as pd
 import numpy as np
 import os #os è un libreria per induviduare la directory dove ci si trova
 from datetime import datetime, timedelta 
 from sklearn import tree
-#import weka.core.jvm as jvm
 from sklearn.metrics import classification_report, confusion_matrix,accuracy_score,recall_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
@@ -18,7 +17,6 @@ from sklearn import metrics
 from sklearn import datasets
 from sklearn.multiclass import OutputCodeClassifier
 from sklearn.svm import *
-#from sklearn import MultinomialNB
 import sklearn
 from sklearn import svm
 from sklearn.multiclass import OneVsRestClassifier,OneVsOneClassifier
@@ -34,7 +32,7 @@ import numpy
 from imblearn.under_sampling import NearMiss
 import datetime
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
 from sklearn import preprocessing
 import datetime, time
 import matplotlib.pyplot as plt
@@ -43,21 +41,30 @@ import warnings
 from sklearn.model_selection import cross_val_predict
 from sklearn.datasets import make_classification as make_classification
 from plotDsLab import plotUsageAndNumcliAndVarClassByTS
-import methodAnalysTraining
+import methodsForAnalysisTrainingTest
 from statsmodels.tsa.arima_model import ARIMA
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
-        
+
+
+#read file csv using PANDAS
 training = pd.read_csv('training.csv', sep=';')  
-# verifica valori null all'interno del training
+# drop null value in training.csv
 training = training.dropna()
+# transformation TS in datetime
 training['TS'] = pd.to_datetime(training['TS'])
 
-print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526
-print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36
-print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472
+print('0 ' + str(len(training[training['VAR_CLASS'] == 0])))#16521526 items with VAR_CLASS = 0 disservice 's absence 
+print('1 ' + str(len(training[training['VAR_CLASS'] == 1])))#36 items with VAR_CLASS = 1 potential presence of disservice
+print('2 ' + str(len(training[training['VAR_CLASS'] == 2])))#472 items with VAR_CLASS =2 disservice 
 
 
-#Analisi TS
+#Analysis column TS remove outliers
 training['TS'] = pd.to_datetime(training['TS'])
 training['TS'].dt.year.unique()#2018
 training['TS'].dt.month.unique()#11
@@ -65,53 +72,23 @@ training['TS'].dt.day.unique()#1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,2
 training['VAR_CLASS'].unique()#1,2,3
 training[training['NUM_CLI'] >= 100]
 
-
-
-trainingOrderByUSAGE = training.sort_values(by=['USAGE'])
-trainingOrderByAVG = training.sort_values(by=['AVG_SPEED_DW'])
-training.describe().apply(lambda s: s.apply(lambda x: format(x, 'g')))
+#check column KIT_ID using describe()
 training['KIT_ID'].describe()
 
-descriptiveQuantity = training[['USAGE','AVG_SPEED_DW','NUM_CLI']].describe().apply(lambda s: s.apply(lambda x: format(x, 'g')))
+#count    1.652203e+07
+#mean     2.160265e+09
+#std      1.224466e+09
+#min      1.512491e+06
+#25%      1.127272e+09
+#50%      2.135241e+09
+#75%      3.242074e+09
+#max      4.292018e+09
 
-descriptiveQuantity
-
-#X,y = prepareTraining()
 #In terms of machine learning, Clf is an estimator instance, which is used to store model.
 #We use clf to store trained model values, which are further used to predict value, based on the previously stored weights.
 
 # Generate a synthetic imbalanced classification dataset
 #Synthetic Minority Over-sampling Technique
-oversample = SMOTE(random_state=100,k_neighbors=2)
-X, y = oversample.fit_resample(X, y)
-counter = Counter(y)
-print(counter)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-modelLR = LogisticRegression()
-modelLR.fit(X_train, y_train)
-y_pred = modelLR.predict(X_test)
-accuracy_score(y_test, y_pred)#0.43
-counter = Counter(y_pred)
-print(counter)
-
-#recall_score(y_test, y_pred)
-
-y_true = y
-
-confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-y_true
-
-
-print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
-
-print(confusion_matrix(y_test,y_pred))
-print(classification_report(y_test,y_pred))
-print(accuracy_score(y_test, y_pred))
-#ovr
 #########################OneVsRestClassifier############################################
 #al posto di clf possiamo mettere qualsiasi altra roba
 clf = OneVsRestClassifier(SVC()).fit(x_train, y_train)
@@ -119,315 +96,95 @@ y_pred = clf.predict(x_test)
 accuracy_score(y_test, y_pred) #0.2
 
 
-###############################OVO#########################################################
-###############################OVO#########################################################
-###############################OVO#########################################################
-#X,y = methodAnalysTraining.prepareTraining()
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
-#X_train
-#
-#X_train = np.delete(X_train, slice(1, 10000000), 0)
-#y_train = np.delete(y_train, slice(1, 10000000), 0)
-#len(X_train)
-#len(y_train)
-#resultLinearSVR = methodAnalysTraining.ovoClassifier(LinearSVR())
-#resultLinearSVR.get_accuracy_score()
-#resultLinearSVR.get_confusion_matrix()
-#
-#resultLinearSVC = ovoClassifier(LinearSVC())
-#resultNuSVR = ovoClassifier(NuSVC())
-#resultLinearSVR = ovoClassifier(NuSVR())
-#resultOneClassSVM = ovoClassifier(OneClassSVM())
-#resultSVC = ovoClassifier(SVC())
-#resultSVR = ovoClassifier(SVR())
-#resultSVR = ovoClassifier(LogisticRegression()())
-#
-##########################################################################################################
-##Unire 1 a 2 e formare un unico pezzo e provare l'algoritmo binario######################################
-##########################################################################################################
-#training['VAR_CLASS'] = training['VAR_CLASS'].replace(2,1)
-##Adesso il problema diventa binario ed è così possibile usare gli algoritmi più noti
-#training['VAR_CLASS']
-#
-#x_train,x_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=123)
-#
-#nr = NearMiss()
-#X_train, y_train = nr.fit_sample(x_train, y_train)
-#counter = Counter(y_train)
-#print(counter)
-#
-###########################################
-#model = SVC(decision_function_shape='ovo')
-## fit model
-#model = model.fit(X_train, y_train)
-#model = model.fit(X_train, y_train)
-#model = model.fit(X_train, y_train)
-#model
-## make predictions
-#y_pred = model.predict(x_test)
-#
-#confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-#accuracy_score(y_test, y_pred)
-#
-#clf = OneVsRestClassifier(SVC())
-#clf.fit(x_train, y_train)
-#y_pred = clf.predict(x_test)
-#accuracy_score(y_test, y_pred)
-#
-#
-#clf = MultinomialNB(alpha=1)
-#y_pred = clf.predict(x_test)
-#accuracy_score(y_test, y_pred)
+#########################OneVsOneClassifier############################################
+clf = OneVsOneClassifier(SVC()).fit(x_train, y_train)
+y_pred = clf.predict(x_test)
+accuracy_score(y_test, y_pred) #0.2
 
 #This approach is commonly used for algorithms that naturally predict numerical class 
 #membership probability or score, such as: 
 #Perceptron
 #As such, the implementation of these algorithms in the scikit-learn library implements the OvR strategy 
 #by default when using these algorithms for multi-class classification.
-training['KIT_ID'][training['VAR_CLASS'] != 2]
-training.where(training['KIT_ID'] ==3409364152 or training['KIT_ID']==1629361016 or training['KIT_ID']==2487219358)
-
-training794615332 = training[training['KIT_ID'] == 794615332 ]
-training794615332.plot(x='TS',y='USAGE',color='red',figsize=(15,2.5), linewidth=1, fontsize=10)
-#kit3409364152.plot(x='TS',y='AVG_SPEED_DW',color='red')#costante
-training794615332.plot(x='TS',y='VAR_CLASS',color='blue',figsize=(15,2.5), linewidth=1, fontsize=10)#costante
-
-
-
-
-
-####################################    PROVA PREDIZIONE CON SOLO KIT_DI CON 1E 2 #######################
-
+####################################    TRY PREDICTION WITH ONLY KIT_ID WITH 1 and 2 #######################
 #training e test
 kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
+# overlapping 2 with 1 in order to trasform problem in binary problem
 kitWith1or2.loc[:,'VAR_CLASS'] = kitWith1or2.loc[:,'VAR_CLASS'].replace(2,1)
 
+###### HOLD-OUT  #########################################################################################################
+resultRandomForest = methodsForAnalysisTrainingTest.binaryHoldOutClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
+adaBoostClassifier = methodsForAnalysisTrainingTest.binaryHoldOutClassifierSmote(AdaBoostClassifier(),kitWith1or2)
+resultDecisionTree = methodsForAnalysisTrainingTest.binaryHoldOutClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
 
-###### RandomForestClassifier con HouldOut
-kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultRandomForest = methodAnalysTraining.binaryHoldOutClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
-
-###### DecisionTreeClassifier con HouldOut
-kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultDecisionTree = methodAnalysTraining.binaryHoldOutClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
-
-
-
-kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultDecisionTree = methodAnalysTraining.binaryHoldOutClassifierSmoteDATETIME(DecisionTreeClassifier(),kitWith1or2)
+###### Cross Validation ########
+resultRandomForest = methodsForAnalysisTrainingTest.binaryCrossValidationClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
+adaBoostClassifier = methodsForAnalysisTrainingTest.binaryCrossValidationClassifierSmote(AdaBoostClassifier(),kitWith1or2)
+resultDecisionTree = methodsForAnalysisTrainingTest.binaryCrossValidationClassifierSmote(DecisionTreeClassifier(),kitWith1or2) 
 
 
-#####  RandomForestClassifier() Cross Validation ########
-kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultRandomForest = methodAnalysTraining.binaryCrossValidationClassifierSmote(RandomForestClassifier(n_estimators=100),kitWith1or2)
-
-##### DecisionTreeClassifier()  Cross Validation ########
-kitWith1or2 = training.loc[((training['KIT_ID'] == 3409364152) | (training['KIT_ID']== 1629361016) | (training['KIT_ID']== 2487219358))]
-resultDecisionTree = methodAnalysTraining.binaryCrossValidationClassifierSmote(DecisionTreeClassifier(),kitWith1or2)
-
-
-# teeeeeeeeeeeeeeeeest
-#kitNot1or2[kitNot1or2['VAR_CLASS']==1]
-
+################ more data ############################################################################################################
 kitNot1or2 = training.loc[((training['KIT_ID']!= 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
 
+########## sampling #####################################################à
+kitNot1or21HalfMilion =  kitNot1or2.sample(n=500000,replace=False)
 
-kitNot1or21Milion =  kitNot1or2.sample(n=1000000,replace=False)
-
-frames = [kitNot1or21Milion, kitWith1or2]
+frames = [kitNot1or21HalfMilion, kitWith1or2]
 result = pd.concat(frames)
-resultRandomForest = methodAnalysTraining.binaryHoldOutClassifierSmoteDATETIME(RandomForestClassifier(n_estimators=100),result)
-resultRandomForest = methodAnalysTraining.binaryCrossValidationClassifierSmote(RandomForestClassifier(n_estimators=100),result)
+resultRandomForest = methodsForAnalysisTrainingTest.binaryHoldOutClassifierSmote(RandomForestClassifier(n_estimators=100),result)
+adaBoostClassifier = methodsForAnalysisTrainingTest.binaryHoldOutClassifierSmote(AdaBoostClassifier(),result)
+resultDecisionTree = methodsForAnalysisTrainingTest.binaryHoldOutClassifierSmote(DecisionTreeClassifier(),result)
 
 
-
-
-
-
-
-kitNot1or2 = training.loc[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
-resultTestDecisionTree = methodAnalysTraining.testClassifier(resultRandomForest.get_clf(),kitNot1or2)
-
-kitNot1or2 = training.loc[((training['KIT_ID'] != 3409364152) & (training['KIT_ID']!= 1629361016) & (training['KIT_ID']!= 2487219358))]
-resultTestDecisionTree = methodAnalysTraining.testClassifier(resultDecisionTree.get_clf(),kitNot1or2)
-
-trainingReplace = training.replace(2,1)
-trainingReplace['VAR_CLASS'].unique()
-X,y = methodAnalysTraining.prepareTraining2(training)
-print(Counter(y))
-
-####################### Make classification ############################################################################
-Z,w = methodAnalysTraining.prepareTraining2(kit3409364152)
-training
-
-counter = Counter(w)
-print(counter)
-type()
-
-
-training.loc[:,'VAR_CLASS'] = training.loc[:,'VAR_CLASS'] -1
-trainingCampionato = training.sample(n=1600 , replace=False,random_state=1000) #['VAR_CLASS']
-
-
+############ PLOT of 3 KIT_ID whose var_char is 1 or 2 #############################################################
 kit3409364152 = training.loc[training['KIT_ID'] == 3409364152]
 kit1629361016 = training.loc[training['KIT_ID']== 1629361016]
 kit2487219358 = training.loc[training['KIT_ID']== 2487219358]
 
-#y_pred3409364152 = resultRandomForest.get_clf()
+###### Random Forest ##############
+methodsForAnalysisTrainingTest.plotPredKitID(kit3409364152,resultRandomForest.get_clf())### in  input one kit_ID e one model trained 
+methodsForAnalysisTrainingTest.plotPredKitID(kit1629361016,resultRandomForest.get_clf())### in  input one kit_ID e one model trained 
+methodsForAnalysisTrainingTest.plotPredKitID(kit2487219358,resultRandomForest.get_clf())### in  input one kit_ID e one model trained 
+
+###### Adaptive Boosting 1 ##############
+methodsForAnalysisTrainingTest.plotPredKitID(kit3409364152,adaBoostClassifier.get_clf())### in  input one kit_ID e one model trained 
+methodsForAnalysisTrainingTest.plotPredKitID(kit1629361016,adaBoostClassifier.get_clf())### in  input one kit_ID e one model trained 
+methodsForAnalysisTrainingTest.plotPredKitID(kit2487219358,adaBoostClassifier.get_clf())### in  input one kit_ID e one model trained 
+ 
+###### Decison Tree Classifier 1 ##############
+methodsForAnalysisTrainingTest.plotPredKitID(kit3409364152,resultDecisionTree.get_clf())### in  input one kit_ID e one model trained 
+methodsForAnalysisTrainingTest.plotPredKitID(kit1629361016,resultDecisionTree.get_clf())### in  input one kit_ID e one model trained 
+methodsForAnalysisTrainingTest.plotPredKitID(kit2487219358,resultDecisionTree.get_clf())### in  input one kit_ID e one model trained 
 
 
-###### tipologia 1 ##############
-methodAnalysTraining.plotPredKitID(kit3409364152,resultRandomForest.get_clf())### in  input un kit e un modello allennato 
-methodAnalysTraining.plotPredKitID(kit1629361016,resultRandomForest.get_clf())### in  input un kit e un modello allennato 
-methodAnalysTraining.plotPredKitID(kit2487219358,resultRandomForest.get_clf())### in  input un kit e un modello allennato 
+#############            APPLICATION TO TEST.CSV                          ##################
+test = pd.read_csv('test.csv', sep=';')
 
-# il modello allenato
-# plotPredKitID
-# cambiare kit 
-
-#############    Random Forest ##################
-##Create a Gaussian Classifier
-#clf=RandomForestClassifier(n_estimators=100)
-#
-##Train the model using the training sets y_pred=clf.predict(X_test)
-#clf.fit(X_train,y_train)
-#
-#y_pred=clf.predict(X_test)
-#confusion_matrix(y_test, y_pred, labels=[0, 1])
-#accuracy_score(y_test, y_pred)
-#############    Random Forest ##################
-#
-#############            DecisionTreeClassifier                          ##################OTTIMI RISULATI
-#clf = DecisionTreeClassifier()
-#
-## Train Decision Tree Classifer
-#clf = clf.fit(X_train,y_train)
-##Predict the response for test dataset
-#y_pred = clf.predict(X_test)
-##counter = Counter(t_pred)
-##print(counter)
-##y_pred = clf.predict(X_test)
-#confusion_matrix(y_test, y_pred, labels=[0, 1])
-#accuracy_score(y_test, y_pred)
-#############            DecisionTreeClassifier                          ##################
-test = pd.read_csv('test.csv', sep=';')  
-T= methodAnalysTraining.prepareTest(test)
+#prepare test to analisys
+T= methodsForAnalysisTrainingTest.prepareTest(test)
 
 y_pred = resultRandomForest.get_clf().predict(T)
-
+np.unique(y_pred)
 test.loc[:,'VAR_CLASS'] = pd.Series(y_pred)
 
 test.loc[:,'VAR_CLASS'].value_counts()
 
 len(test[(test['VAR_CLASS']== 1) | (test['VAR_CLASS']== 2)]['KIT_ID'].unique())## 377
-len(test['KIT_ID'].unique()) ##2121
+len(test['KIT_ID'].unique())## 2121
 
-kit113054467 = test[test['KIT_ID'] == 113054467]
+test = methodsForAnalysisTrainingTest.fromSecondToDate(test)
+kit1629361016 = test.loc[test.loc[:,'KIT_ID'] == 1629361016]# present var_class=0 even when usage is different to zero 
+kit1970831019 = test[test['KIT_ID'] == 1970831019]
+kit2709380104 = test[test['KIT_ID'] == 2709380104]
+kit2130171679 = test[test['KIT_ID'] == 2130171679]
+kit1824349749 = test[test['KIT_ID'] == 1824349749]# present var_class=0 even when usage is different to zero 
 
-
-kit1338038850 = test[test['KIT_ID'] == 1338038850]
-
-
-kit2830968677 = test[test['KIT_ID'] == 2830968677]
-
-kit2830968677.loc[:,['USAGE','VAR_CLASS']] = preprocessing.normalize(kit2830968677.loc[:,['USAGE','VAR_CLASS']])
-
-
-########################################Parte relatica alla lettura del TEST.csv
-#test['TS'] = pd.to_numeric(test['TS'], downcast='float', errors='ignore')
-#test = pd.read_csv('test.csv', sep=';')       
+plotUsageAndNumcliAndVarClassByTS(kit1629361016,False)
+########################## END ####################################################################################
 
 
-training.loc[:,'VAR_CLASS'] = training.loc[:,'VAR_CLASS'].replace(2,1) 
-X,y = prepareTraining2(training)
-counter = Counter(y)
-print(counter)
-#Synthetic Minority Over-sampling Technique
-oversample = SMOTE(random_state=100,k_neighbors=2)
-X, y = oversample.fit_resample(X, y)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100,stratify=y)
-counter = Counter(y_train)
-print(counter)
-counter = Counter(y_test)
-print(counter)
-results = Results()
-clf = RandomForestClassifier()
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-score = accuracy_score(y_test, y_pred)
-confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
-#    confusionMatrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2])
-print(score)
-print(confusionMatrix)
-results.set_accuracy_score(score)
-results.set_confusion_matrix(confusionMatrix)
-results.set_clf(clf)
-return results
+"""
+Spyder Editor Kevin Tranchina ,Filippo Maria Casula ,Giulia , Enrico Ragusa
 
-
-test = pd.read_csv('test.csv', sep=';')  
-
-
-
-
-def parser(x):
-	return datetime.strptime('190'+x, '%Y-%m')
- 
-series = read_csv('shampoo-sales.csv', header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-# fit model
-training
-kitWith1or2 = kitWith1or2['USAGE']
-kitWith1or2 = kitWith1or2.set_index('TS')
-
-#fit model
-model = ARIMA(kitWith1or2, order=(5,1,0))
-model_fit = model.fit(disp=0)
-print(model_fit.summary())
-# plot residual errors
-residuals = pd.DataFrame(model_fit.resid)
-residuals.plot()
-pyplot.show()
-residuals.plot(kind='kde')
-pyplot.show()
-print(residuals.describe())
-
-
-
-
-
-def parser(x):
-	return pd.datetime.strptime('190'+x, '%Y-%m')
- 
-series = pd.read_csv('series.csv', header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-print(series.head())
-series.plot()
-pyplot.show()
-
-
-
-model = ARIMA(series, order=(5,1,0))
-model_fit = model.fit(disp=0)
-print(model_fit.summary())
-# plot residual errors
-residuals = pd.DataFrame(model_fit.resid)
-residuals.plot()
-pyplot.show()
-residuals.plot(kind='kde')
-pyplot.show()
-print(residuals.describe())
-
-
-
-
-########################### TO DATE TIME###########################
-
-
-
-training = methodAnalysTraining.toDateDataframe(training)
-test = methodAnalysTraining.toDateDataframe(test)
- 
-X,y = prepareTrainingDataframeDatetime()
-
-
-test.to_csv 
-
+This is a temporary script file.
+"""
